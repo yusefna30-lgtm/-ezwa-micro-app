@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عِزوة | المنظومة الذكية لشراكة المقاهي ومحفظة السفير</title>
+    <title>عِزوة | المنظومة الذكية وأرشيف سفراء التأسيس</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Cairo -->
@@ -36,19 +36,26 @@
             background-size: 50px 50px;
             opacity: 0.04;
         }
+        /* خط التوقيع الفاخر */
+        .signature-font {
+            font-family: 'Courier New', Courier, monospace;
+            font-style: italic;
+            letter-spacing: 2px;
+        }
     </style>
 </head>
 <body class="min-h-screen pb-16">
     <div class="gold-dust"></div>
 
     <!-- شريط التنقل العلوي -->
-    <nav class="bg-black/95 border-b gold-border sticky top-0 z-40 px-3 py-3">
+    <nav class="bg-black/95 border-b gold-border sticky top-0 z-40 px-2 py-3">
         <div class="max-w-md mx-auto flex justify-between items-center">
-            <span class="text-base font-bold gold-gradient">عِزوة EZWA</span>
-            <div class="flex space-x-1.5 space-x-reverse">
-                <button onclick="switchView('client')" id="btn-client" class="text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition">الطاولة</button>
-                <button onclick="switchView('ambassador')" id="btn-ambassador" class="text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition">محفظة السفير</button>
-                <button onclick="switchView('dashboard')" id="btn-dashboard" class="text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition">لوحة المقهى</button>
+            <span class="text-sm font-bold gold-gradient">عِزوة EZWA</span>
+            <div class="flex space-x-1 space-x-reverse">
+                <button onclick="switchView('client')" id="btn-client" class="text-[10px] px-2 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition">الطاولة</button>
+                <button onclick="switchView('founders')" id="btn-founders" class="text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition">أرشيف التأسيس</button>
+                <button onclick="switchView('ambassador')" id="btn-ambassador" class="text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition">محفظتي</button>
+                <button onclick="switchView('dashboard')" id="btn-dashboard" class="text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition">المقهى</button>
             </div>
         </div>
     </nav>
@@ -57,7 +64,7 @@
     <div id="view-client" class="max-w-md mx-auto px-4 pt-6 space-y-5 relative z-10">
         <div class="bg-gradient-to-r from-amber-950/40 via-black to-amber-950/40 border gold-border rounded-xl p-3 text-xs text-amber-200/90 shadow-lg text-center">
             ☕ أهلاً بك في ضيافة <span class="font-bold text-amber-400">مقهى الخطوة المختصة</span> (طاولة 04).<br>
-            اقْتصِ إصدارك واحصل على قهوتك مجاناً فوراً!
+            باقي <span class="text-white font-bold underline">3 مقاعد فقط</span> لانضمام سفراء التأسيس الـ 20!
         </div>
 
         <div class="glass-card rounded-2xl p-4 shadow-2xl relative overflow-hidden">
@@ -96,8 +103,8 @@
         <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center space-x-3 space-x-reverse">
             <div class="text-3xl bg-amber-500/20 p-2.5 rounded-xl border border-amber-500/30">🎁</div>
             <div>
-                <h3 class="text-sm font-bold text-amber-300">هدية ضيافة المقهى</h3>
-                <p class="text-xs text-gray-300 mt-0.5">احصل على <span class="text-white font-bold underline">كوب قهوة مختصة مجاناً</span> فور إتمام الطلب وإبراز الرمز للكاشير!</p>
+                <h3 class="text-sm font-bold text-amber-300">مكافأة التأسيس والضيافة</h3>
+                <p class="text-xs text-gray-300 mt-0.5">احصل على <span class="text-white font-bold underline">كوب قهوة مجاني</span> فوراً، ودخول أبدي في أرشيف الأسماء المؤسسة!</p>
             </div>
         </div>
 
@@ -107,7 +114,57 @@
         </button>
     </div>
 
-    <!-- ================= 2. محفظة السفير ونظام الإحالة (Ambassador Wallet) ================= -->
+    <!-- ================= 2. أرشيف سفراء التأسيس (Wall of Founders) ================= -->
+    <div id="view-founders" class="max-w-md mx-auto px-4 pt-6 space-y-4 relative z-10 hidden">
+        <div class="glass-card rounded-2xl p-5 border gold-border space-y-4">
+            <div class="text-center space-y-1 border-b border-white/10 pb-4">
+                <span class="text-amber-400 text-xs font-bold tracking-widest uppercase">✨ حائط شرف النخبة</span>
+                <h3 class="text-xl font-bold gold-gradient">أرشيف سفراء التأسيس</h3>
+                <p class="text-[11px] text-gray-400 leading-relaxed">الأسماء والتوقيعات الرسمية لأول 20 عميلاً أسسوا معنا قصة نجاح براند عِزوة في الرياض.</p>
+            </div>
+
+            <!-- قائمة الأسماء والتوقيعات المحفورة بالذهب -->
+            <div class="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                <div class="bg-black/70 border gold-border p-3 rounded-xl flex justify-between items-center">
+                    <div>
+                        <div class="text-xs font-bold text-white">1. فيصل بن عبد العزيز</div>
+                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #01</div>
+                    </div>
+                    <div class="signature-font text-amber-400 text-sm">Faisal.A</div>
+                </div>
+
+                <div class="bg-black/70 border gold-border p-3 rounded-xl flex justify-between items-center">
+                    <div>
+                        <div class="text-xs font-bold text-white">2. تركي الشمري</div>
+                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #02</div>
+                    </div>
+                    <div class="signature-font text-amber-400 text-sm">Turki.S</div>
+                </div>
+
+                <div class="bg-black/70 border gold-border p-3 rounded-xl flex justify-between items-center">
+                    <div>
+                        <div class="text-xs font-bold text-white">3. مشعل القحطاني</div>
+                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #03</div>
+                    </div>
+                    <div class="signature-font text-amber-400 text-sm">Mishal.Q</div>
+                </div>
+
+                <div class="bg-black/70 border gold-border p-3 rounded-xl flex justify-between items-center">
+                    <div>
+                        <div class="text-xs font-bold text-white">4. سلطان الدوسري</div>
+                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #04</div>
+                    </div>
+                    <div class="signature-font text-amber-400 text-sm">Sultan.D</div>
+                </div>
+
+                <div class="bg-neutral-900/50 border border-dashed border-white/20 p-3 rounded-xl text-center text-gray-500 text-xs">
+                    + 16 مقعداً متاحاً لانضمام بقية سفراء التأسيس...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 3. محفظة السفير ونظام الإحالة (Ambassador Wallet) ================= -->
     <div id="view-ambassador" class="max-w-md mx-auto px-4 pt-6 space-y-5 relative z-10 hidden">
         <div class="glass-card rounded-2xl p-5 border gold-border space-y-4">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
@@ -115,40 +172,36 @@
                     <h3 class="text-sm font-bold gold-gradient">👑 محفظة السفير الرقمية</h3>
                     <p class="text-[10px] text-gray-400">رقم الشريحة: #EZW-9082</p>
                 </div>
-                <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30 font-bold">سفير معتمد</span>
+                <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30 font-bold">سفير مؤسس</span>
             </div>
 
-            <!-- رصيد الكاش باك والإصدار القادم -->
             <div class="grid grid-cols-2 gap-3 text-center">
                 <div class="bg-black/60 p-3.5 rounded-xl border border-white/10">
-                    <div class="text-[10px] text-gray-400">رصيد الكاش باك المتاح</div>
+                    <div class="text-[10px] text-gray-400">رصيد الكاش باك</div>
                     <div class="text-xl font-black gold-gradient mt-1">120 ر.س</div>
                 </div>
                 <div class="bg-black/60 p-3.5 rounded-xl border border-white/10">
-                    <div class="text-[10px] text-gray-400">الأصدقاء الذين أشرتهم</div>
+                    <div class="text-[10px] text-gray-400">الشبكة المتسلسلة</div>
                     <div class="text-xl font-black text-white mt-1">3 أصدقاء</div>
                 </div>
             </div>
 
-            <!-- ميزة الإحالة الموجهة للمقهى -->
-            <div class="bg-gradient-to-r from-amber-950/30 via-black to-amber-950/30 border border-amber-500/30 p-3.5 rounded-xl space-y-2">
+            <div class="bg-amber-950/30 border border-amber-500/30 p-3.5 rounded-xl space-y-2">
                 <div class="flex items-center space-x-2 space-x-reverse text-amber-300 text-xs font-bold">
-                    <span>⚡ ميزة الإحالة النشطة في المقهى</span>
+                    <span>⚡ ميزة الإحالة اللانهائية (سفير مؤسس)</span>
                 </div>
                 <p class="text-[11px] text-gray-300 leading-relaxed">
-                    عندما يمسح أي صديق شريحة ملابسك هنا في المقهى، يحصل على <span class="text-white font-bold">خصم 20%</span> ويحصل المقهى على طلب قهوة مجاني، وتحصل أنت على <span class="text-amber-400 font-bold">40 ريال كاش باك</span> ترحل لمحفظتك فوراً!
+                    شبكتك مفتوحة للأجيال المتعاقدة بلا حدود. كل صديق يمسح شريحتك يحصل على خصم وتحصل أنت على 40 ريال كاش باك فوري.
                 </p>
             </div>
 
-            <div class="pt-2">
-                <button onclick="alert('تم نسخ رابط شريحة السفير الخاص بك بنجاح! شاركه مع أصدقائك.')" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 text-black font-bold py-3 rounded-xl text-xs shadow-lg transition hover:brightness-110">
-                    🔗 مشاركة رابط الشريحة الذكية
-                </button>
-            </div>
+            <button onclick="alert('تم نسخ رابط شريحة السفير الخاص بك بنجاح!')" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 text-black font-bold py-3 rounded-xl text-xs shadow-lg transition hover:brightness-110">
+                🔗 مشاركة رابط الشريحة الذكية
+            </button>
         </div>
     </div>
 
-    <!-- ================= 3. لوحة تحكم الشريك والمقهى (Dashboard) ================= -->
+    <!-- ================= 4. لوحة تحكم الشريك والمقهى (Dashboard) ================= -->
     <div id="view-dashboard" class="max-w-md mx-auto px-4 pt-6 space-y-5 relative z-10 hidden">
         <div class="glass-card rounded-2xl p-5 border gold-border space-y-4">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
@@ -175,17 +228,6 @@
                 <p class="text-[10px] text-gray-400 mt-1">تُصرف للموظف المثالي نهاية الشهر تحت إدارة المالك.</p>
             </div>
 
-            <div class="text-xs space-y-2 pt-2 border-t border-white/10 text-gray-300">
-                <div class="flex justify-between">
-                    <span>ثمن القهوة المجانية المدفوعة للزبائن:</span>
-                    <span class="text-white font-bold">216 ر.س (مدفوعة من عِزوة)</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>صافي ربح براند عِزوة الفعلي:</span>
-                    <span class="text-amber-400 font-bold">954 ر.س</span>
-                </div>
-            </div>
-
             <button onclick="simulateNewSale()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 text-black font-bold py-3 rounded-xl text-xs shadow-lg transition hover:brightness-110">
                 + محاكاة بيعة جديدة من الطاولة (Demo)
             </button>
@@ -196,16 +238,16 @@
     <div id="success-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="glass-card border gold-border rounded-2xl p-6 max-w-sm w-full text-center space-y-4">
             <div class="w-14 h-14 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-amber-400/40">✓</div>
-            <h3 class="text-xl font-bold gold-gradient">تم الدفع بنجاح!</h3>
-            <p class="text-xs text-gray-300">تم توثيق إصدارك الرقمي عبر شريحة الـ NFC بنجاح.</p>
+            <h3 class="text-xl font-bold gold-gradient">مبروك انضمامك لسفراء التأسيس!</h3>
+            <p class="text-xs text-gray-300">تم حجز مقعدك ضمن الـ 20 الأوائل وتوثيق اسمك في الأرشيف الذهبي.</p>
             
             <div class="bg-black/80 border border-amber-500/40 p-3 rounded-xl text-right space-y-1">
                 <div class="text-[10px] text-amber-400 font-bold">🎫 قسيمة استلام القهوة المجانية للكاشير:</div>
-                <div class="text-sm font-mono text-white tracking-widest text-center py-1">EZWA-CAFE-VIP-88</div>
+                <div class="text-sm font-mono text-white tracking-widest text-center py-1">EZWA-FOUNDER-VIP</div>
                 <div class="text-[10px] text-gray-400 text-center">أبرز هذه الشاشة للكاشير لاستلام قهوتك فوراً!</div>
             </div>
 
-            <button onclick="closeModal()" class="w-full bg-amber-500 text-black font-bold py-3 rounded-xl text-xs font-bold">
+            <button onclick="closeModal()" class="w-full bg-amber-500 text-black font-bold py-3 rounded-xl text-xs">
                 إغلاق
             </button>
         </div>
@@ -223,32 +265,39 @@
 
         function switchView(view) {
             const clientView = document.getElementById('view-client');
+            const foundersView = document.getElementById('view-founders');
             const ambView = document.getElementById('view-ambassador');
             const dashView = document.getElementById('view-dashboard');
             
             const btnClient = document.getElementById('btn-client');
+            const btnFounders = document.getElementById('btn-founders');
             const btnAmb = document.getElementById('btn-ambassador');
             const btnDash = document.getElementById('btn-dashboard');
 
             // إخفاء الكل
             clientView.classList.add('hidden');
+            foundersView.classList.add('hidden');
             ambView.classList.add('hidden');
             dashView.classList.add('hidden');
 
             // إعادة تعيين الأزرار
-            btnClient.className = "text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
-            btnAmb.className = "text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
-            btnDash.className = "text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
+            btnClient.className = "text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
+            btnFounders.className = "text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
+            btnAmb.className = "text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
+            btnDash.className = "text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
 
             if(view === 'client') {
                 clientView.classList.remove('hidden');
-                btnClient.className = "text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
+                btnClient.className = "text-[10px] px-2 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
+            } else if(view === 'founders') {
+                foundersView.classList.remove('hidden');
+                btnFounders.className = "text-[10px] px-2 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
             } else if(view === 'ambassador') {
                 ambView.classList.remove('hidden');
-                btnAmb.className = "text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
+                btnAmb.className = "text-[10px] px-2 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
             } else if(view === 'dashboard') {
                 dashView.classList.remove('hidden');
-                btnDash.className = "text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
+                btnDash.className = "text-[10px] px-2 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
                 updateDashboardStats();
             }
         }
