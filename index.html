@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عِزوة | المنظومة الذكية وأرشيف سفراء التأسيس</title>
+    <title>عِزوة | ذاكرة التيشيرت الرقمية وسفراء التأسيس</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Cairo -->
@@ -36,11 +36,10 @@
             background-size: 50px 50px;
             opacity: 0.04;
         }
-        /* خط التوقيع الفاخر */
-        .signature-font {
-            font-family: 'Courier New', Courier, monospace;
-            font-style: italic;
-            letter-spacing: 2px;
+        .signature-canvas {
+            background: #000;
+            border: 1px dashed rgba(212, 175, 55, 0.4);
+            touch-action: none;
         }
     </style>
 </head>
@@ -53,6 +52,7 @@
             <span class="text-sm font-bold gold-gradient">عِزوة EZWA</span>
             <div class="flex space-x-1 space-x-reverse">
                 <button onclick="switchView('client')" id="btn-client" class="text-[10px] px-2 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition">الطاولة</button>
+                <button onclick="switchView('signature')" id="btn-signature" class="text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition">ذاكرة التيشيرت</button>
                 <button onclick="switchView('founders')" id="btn-founders" class="text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition">أرشيف التأسيس</button>
                 <button onclick="switchView('ambassador')" id="btn-ambassador" class="text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition">محفظتي</button>
                 <button onclick="switchView('dashboard')" id="btn-dashboard" class="text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition">المقهى</button>
@@ -104,7 +104,7 @@
             <div class="text-3xl bg-amber-500/20 p-2.5 rounded-xl border border-amber-500/30">🎁</div>
             <div>
                 <h3 class="text-sm font-bold text-amber-300">مكافأة التأسيس والضيافة</h3>
-                <p class="text-xs text-gray-300 mt-0.5">احصل على <span class="text-white font-bold underline">كوب قهوة مجاني</span> فوراً، ودخول أبدي في أرشيف الأسماء المؤسسة!</p>
+                <p class="text-xs text-gray-300 mt-0.5">احصل على <span class="text-white font-bold underline">كوب قهوة مجاني</span> فوراً، وتوثيق بصمتك في ذاكرة التيشيرت!</p>
             </div>
         </div>
 
@@ -114,7 +114,49 @@
         </button>
     </div>
 
-    <!-- ================= 2. أرشيف سفراء التأسيس (Wall of Founders) ================= -->
+    <!-- ================= 2. واجهة ذاكرة التيشيرت والتوقيع اللحظي (Interactive Signature) ================= -->
+    <div id="view-signature" class="max-w-md mx-auto px-4 pt-6 space-y-5 relative z-10 hidden">
+        <div class="glass-card rounded-2xl p-5 border gold-border space-y-4">
+            <div class="text-center space-y-1 border-b border-white/10 pb-3">
+                <h3 class="text-sm font-bold gold-gradient">✍️ ذاكرة التيشيرت الحية</h3>
+                <p class="text-[11px] text-gray-400">اترك أثرك وتوقيعك في ذاكرة هذا التيشيرت لحظياً.</p>
+            </div>
+
+            <!-- نموذج إدخال التوقيع -->
+            <div class="space-y-3">
+                <input type="text" id="signer-name" placeholder="اسمك الكريم أو لقبك..." class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white focus:border-amber-400 outline-none transition">
+                <input type="text" id="signer-note" placeholder="كلمة تذكارية أو إهداء قصير..." class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white focus:border-amber-400 outline-none transition">
+
+                <div>
+                    <div class="flex justify-between items-center text-[10px] text-amber-300 mb-1">
+                        <span>✍️ ارسم توقيعك أو بصمتك هنا بإصبعك[cite: 4]:</span>
+                        <button onclick="clearCanvas()" class="text-gray-400 hover:text-white underline">مسح وإعادة ↺</button>
+                    </div>
+                    <canvas id="sig-canvas" class="signature-canvas w-full h-32 rounded-xl cursor-crosshair"></canvas>
+                </div>
+
+                <button onclick="saveSignature()" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 text-black font-bold py-3 rounded-xl text-xs shadow-lg transition hover:brightness-110">
+                    ✨ حفظ التوقيع سحابياً في التيشيرت[cite: 4]
+                </button>
+            </div>
+
+            <!-- قائمة البصمات الحية للأصدقاء -->
+            <div class="pt-3 border-t border-white/10 space-y-2">
+                <h4 class="text-xs font-bold text-amber-300">بصمات الأصدقاء والملهمين (محدثة لحظياً)[cite: 4]</h4>
+                <div id="signatures-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <div class="text-center text-gray-500 text-[11px] py-4 bg-black/40 rounded-xl border border-white/5">
+                        لا توجد بصمات مسجلة بعد. كن أول من يوقع![cite: 4]
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center pt-2">
+                <span class="text-[9px] text-gray-500 cursor-pointer hover:text-amber-400 transition">🔒 وضع المالك (إدارة التواقيع)[cite: 4]</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 3. أرشيف سفراء التأسيس (Wall of Founders) ================= -->
     <div id="view-founders" class="max-w-md mx-auto px-4 pt-6 space-y-4 relative z-10 hidden">
         <div class="glass-card rounded-2xl p-5 border gold-border space-y-4">
             <div class="text-center space-y-1 border-b border-white/10 pb-4">
@@ -123,48 +165,47 @@
                 <p class="text-[11px] text-gray-400 leading-relaxed">الأسماء والتوقيعات الرسمية لأول 20 عميلاً أسسوا معنا قصة نجاح براند عِزوة في الرياض.</p>
             </div>
 
-            <!-- قائمة الأسماء والتوقيعات المحفورة بالذهب -->
             <div class="space-y-2.5 max-h-96 overflow-y-auto pr-1">
                 <div class="bg-black/70 border gold-border p-3 rounded-xl flex justify-between items-center">
                     <div>
-                        <div class="text-xs font-bold text-white">1. فيصل بن عبد العزيز</div>
-                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #01</div>
+                        <div class="text-xs font-bold text-white">1. فيصل بن عبد العزيز[cite: 5]</div>
+                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #01[cite: 5]</div>
                     </div>
-                    <div class="signature-font text-amber-400 text-sm">Faisal.A</div>
+                    <div class="font-mono italic text-amber-400 text-xs tracking-wider">Faisal.A[cite: 5]</div>
                 </div>
 
                 <div class="bg-black/70 border gold-border p-3 rounded-xl flex justify-between items-center">
                     <div>
-                        <div class="text-xs font-bold text-white">2. تركي الشمري</div>
-                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #02</div>
+                        <div class="text-xs font-bold text-white">2. تركي الشمري[cite: 5]</div>
+                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #02[cite: 5]</div>
                     </div>
-                    <div class="signature-font text-amber-400 text-sm">Turki.S</div>
+                    <div class="font-mono italic text-amber-400 text-xs tracking-wider">Turki.S[cite: 5]</div>
                 </div>
 
                 <div class="bg-black/70 border gold-border p-3 rounded-xl flex justify-between items-center">
                     <div>
-                        <div class="text-xs font-bold text-white">3. مشعل القحطاني</div>
-                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #03</div>
+                        <div class="text-xs font-bold text-white">3. مشعل القحطاني[cite: 5]</div>
+                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #03[cite: 5]</div>
                     </div>
-                    <div class="signature-font text-amber-400 text-sm">Mishal.Q</div>
+                    <div class="font-mono italic text-amber-400 text-xs tracking-wider">Mishal.Q[cite: 5]</div>
                 </div>
 
                 <div class="bg-black/70 border gold-border p-3 rounded-xl flex justify-between items-center">
                     <div>
-                        <div class="text-xs font-bold text-white">4. سلطان الدوسري</div>
-                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #04</div>
+                        <div class="text-xs font-bold text-white">4. سلطان الدوسري[cite: 5]</div>
+                        <div class="text-[9px] text-amber-300/80">إصدار المصمك #04[cite: 5]</div>
                     </div>
-                    <div class="signature-font text-amber-400 text-sm">Sultan.D</div>
+                    <div class="font-mono italic text-amber-400 text-xs tracking-wider">Sultan.D[cite: 5]</div>
                 </div>
 
                 <div class="bg-neutral-900/50 border border-dashed border-white/20 p-3 rounded-xl text-center text-gray-500 text-xs">
-                    + 16 مقعداً متاحاً لانضمام بقية سفراء التأسيس...
+                    + 16 مقعداً متاحاً لانضمام بقية سفراء التأسيس...[cite: 5]
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ================= 3. محفظة السفير ونظام الإحالة (Ambassador Wallet) ================= -->
+    <!-- ================= 4. محفظة السفير ونظام الإحالة (Ambassador Wallet) ================= -->
     <div id="view-ambassador" class="max-w-md mx-auto px-4 pt-6 space-y-5 relative z-10 hidden">
         <div class="glass-card rounded-2xl p-5 border gold-border space-y-4">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
@@ -201,7 +242,7 @@
         </div>
     </div>
 
-    <!-- ================= 4. لوحة تحكم الشريك والمقهى (Dashboard) ================= -->
+    <!-- ================= 5. لوحة تحكم الشريك والمقهى (Dashboard) ================= -->
     <div id="view-dashboard" class="max-w-md mx-auto px-4 pt-6 space-y-5 relative z-10 hidden">
         <div class="glass-card rounded-2xl p-5 border gold-border space-y-4">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
@@ -264,40 +305,16 @@
         let unitPool = 20;
 
         function switchView(view) {
-            const clientView = document.getElementById('view-client');
-            const foundersView = document.getElementById('view-founders');
-            const ambView = document.getElementById('view-ambassador');
-            const dashView = document.getElementById('view-dashboard');
-            
-            const btnClient = document.getElementById('btn-client');
-            const btnFounders = document.getElementById('btn-founders');
-            const btnAmb = document.getElementById('btn-ambassador');
-            const btnDash = document.getElementById('btn-dashboard');
+            const views = ['client', 'signature', 'founders', 'ambassador', 'dashboard'];
+            views.forEach(v => {
+                document.getElementById('view-' + v).classList.add('hidden');
+                document.getElementById('btn-' + v).className = "text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
+            });
 
-            // إخفاء الكل
-            clientView.classList.add('hidden');
-            foundersView.classList.add('hidden');
-            ambView.classList.add('hidden');
-            dashView.classList.add('hidden');
+            document.getElementById('view-' + view).classList.remove('hidden');
+            document.getElementById('btn-' + view).className = "text-[10px] px-2 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
 
-            // إعادة تعيين الأزرار
-            btnClient.className = "text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
-            btnFounders.className = "text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
-            btnAmb.className = "text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
-            btnDash.className = "text-[10px] px-2 py-1.5 rounded-lg border border-amber-400/40 text-amber-300 hover:bg-amber-400/10 transition";
-
-            if(view === 'client') {
-                clientView.classList.remove('hidden');
-                btnClient.className = "text-[10px] px-2 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
-            } else if(view === 'founders') {
-                foundersView.classList.remove('hidden');
-                btnFounders.className = "text-[10px] px-2 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
-            } else if(view === 'ambassador') {
-                ambView.classList.remove('hidden');
-                btnAmb.className = "text-[10px] px-2 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
-            } else if(view === 'dashboard') {
-                dashView.classList.remove('hidden');
-                btnDash.className = "text-[10px] px-2 py-1.5 rounded-lg bg-amber-400 text-black font-bold transition";
+            if(view === 'dashboard') {
                 updateDashboardStats();
             }
         }
@@ -329,6 +346,93 @@
             document.getElementById('stat-sales').innerText = totalSales + ' قطعة';
             document.getElementById('stat-commission').innerText = (totalSales * unitCommission) + ' ر.س';
             document.getElementById('stat-pool').innerText = (totalSales * unitPool) + ' ر.س';
+        }
+
+        // إعداد لوحة الرسم (Canvas) للتوقيع التفاعلي
+        const canvas = document.getElementById('sig-canvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = 128;
+            ctx.strokeStyle = '#FBF5B7';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+        }
+        window.addEventListener('load', resizeCanvas);
+
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('touchstart', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('mouseup', stopDraw);
+        canvas.addEventListener('touchend', stopDraw);
+
+        function startDraw(e) {
+            drawing = true;
+            ctx.beginPath();
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            ctx.moveTo(x, y);
+            e.preventDefault();
+        }
+
+        function draw(e) {
+            if (!drawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            e.preventDefault();
+        }
+
+        function stopDraw() {
+            drawing = false;
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        let signaturesData = [];
+        function saveSignature() {
+            const name = document.getElementById('signer-name').value.trim();
+            const note = document.getElementById('signer-note').value.trim();
+            if(!name) {
+                alert('الرجاء إدخال اسمك الكريم أو لقبك.');
+                return;
+            }
+
+            signaturesData.unshift({ name, note, time: 'الآن' });
+            renderSignatures();
+            clearCanvas();
+            document.getElementById('signer-name').value = '';
+            document.getElementById('signer-note').value = '';
+            alert('✨ تم حفظ توقيعك وبصمتك سحابياً في ذاكرة التيشيرت بنجاح!');
+        }
+
+        function renderSignatures() {
+            const list = document.getElementById('signatures-list');
+            if(signaturesData.length === 0) {
+                list.innerHTML = `<div class="text-center text-gray-500 text-[11px] py-4 bg-black/40 rounded-xl border border-white/5">لا توجد بصمات مسجلة بعد. كن أول من يوقع!</div>`;
+                return;
+            }
+            let html = '';
+            signaturesData.forEach(sig => {
+                html += `
+                    <div class="bg-black/70 border gold-border p-2.5 rounded-xl flex justify-between items-center text-xs">
+                        <div>
+                            <span class="font-bold text-white">${sig.name}</span>
+                            <p class="text-[10px] text-gray-400">${sig.note || 'بدون إهداء'}</p>
+                        </div>
+                        <span class="text-[9px] text-amber-400">${sig.time}</span>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
         }
     </script>
 </body>
