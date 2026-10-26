@@ -10,7 +10,7 @@
     <!-- Firebase SDKs via CDN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCBcWfYs1iAbKMWFhLaSy8puN-g_N43wxc",
@@ -25,7 +25,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ربط دالة حفظ الطلبات سحابياً
+        // حفظ الطلب سحابياً
         window.saveOrderToCloud = async function(orderData) {
             try {
                 await addDoc(collection(db, "orders"), {
@@ -35,6 +35,57 @@
                 console.log("تم حفظ الطلب في سحابة Firebase بنجاح!");
             } catch (e) {
                 console.error("خطأ في حفظ الطلب: ", e);
+            }
+        };
+
+        // جلب الإحصائيات الحية للوحة المؤسس والمقهى
+        window.fetchCloudStats = async function() {
+            try {
+                const q = query(collection(db, "orders"));
+                const querySnapshot = await getDocs(q);
+                let totalOrders = 0;
+                let ordersListHtml = "";
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    totalOrders++;
+                    ordersListHtml += `
+                        <div class="bg-neutral-900 p-3 rounded-xl border border-neutral-800 flex justify-between items-center text-xs mb-2">
+                            <div>
+                                <span class="font-bold text-amber-300 block">${data.product} (${data.size})</span>
+                                <span class="text-[10px] text-neutral-400">الطاولة: ${data.table} | الدفع: ${data.paymentMethod}</span>
+                            </div>
+                            <span class="text-emerald-400 font-medium text-[11px]">${data.status}</span>
+                        </div>
+                    `;
+                });
+
+                // تحديث واجهة لوحة المؤسس
+                const unitPrice = 199;
+                const costPerItem = 80;
+                const totalRevenue = totalOrders * unitPrice;
+                const totalCost = totalOrders * costPerItem;
+                const totalCafeCommission = totalOrders * (19.9 + 10); // 10% commission + 10 sar barista tip
+                const netProfit = totalRevenue - totalCost - totalCafeCommission;
+
+                document.getElementById('founder-total-revenue').innerText = totalRevenue + " ر.س";
+                document.getElementById('founder-net-profit').innerText = netProfit.toFixed(1) + " ر.س";
+                document.getElementById('founder-total-cost').innerText = totalCost + " ر.س (" + totalOrders + " قطعة)";
+                document.getElementById('founder-total-commissions').innerText = totalCafeCommission.toFixed(1) + " ر.س";
+                document.getElementById('founder-orders-count').innerText = totalOrders + " / 20 عميلاً";
+
+                // تحديث واجهة لوحة المقهى
+                document.getElementById('cafe-total-sales').innerText = totalOrders + " قطعة";
+                document.getElementById('cafe-net-commission').innerText = (totalOrders * 19.9).toFixed(1) + " ر.س";
+                document.getElementById('cafe-barista-tip').innerText = (totalOrders * 10) + " ر.س";
+
+                // عرض قائمة الطلبات الحية
+                if (document.getElementById('live-orders-container')) {
+                    document.getElementById('live-orders-container').innerHTML = ordersListHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد طلبات مسجلة حتى الآن.</p>';
+                }
+
+            } catch (e) {
+                console.error("خطأ في جلب البيانات: ", e);
             }
         };
     </script>
@@ -210,27 +261,27 @@
                         <span class="text-xl">☕</span>
                         <h3 class="font-bold text-sm text-amber-200">لوحة تحكم الشريك (حساب المقهى)</h3>
                     </div>
-                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-medium">محمي برقم سري</span>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-medium">مباشر من السحابة</span>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div class="bg-neutral-900 p-3 rounded-2xl border border-neutral-800 text-center">
                         <span class="text-[11px] text-neutral-400 block mb-1">إجمالي المبيعات (طاولاتك)</span>
-                        <span class="text-lg font-black text-white">12 قطعة</span>
+                        <span id="cafe-total-sales" class="text-lg font-black text-white">0 قطعة</span>
                     </div>
                     <div class="bg-neutral-900 p-3 rounded-2xl border border-neutral-800 text-center">
                         <span class="text-[11px] text-neutral-400 block mb-1">عمولتك الصافية (10%)</span>
-                        <span class="text-lg font-black text-amber-400">238.8 ر.س</span>
+                        <span id="cafe-net-commission" class="text-lg font-black text-amber-400">0 ر.س</span>
                     </div>
                 </div>
 
                 <div class="bg-neutral-900/60 p-3 rounded-2xl border border-neutral-800 flex items-center justify-between text-xs mb-4">
                     <span class="text-neutral-400">حافز الباريستا المترصد (10 ر.س لكل قطعة):</span>
-                    <span class="font-bold text-amber-200">120 ر.س</span>
+                    <span id="cafe-barista-tip" class="font-bold text-amber-200">0 ر.س</span>
                 </div>
 
-                <button onclick="alert('جارٍ تصدير تقرير التسويات البنكية الأسبوعية للمقهى..')" class="w-full py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-amber-300 text-xs font-bold transition border gold-border cursor-pointer">
-                    تقرير التسويات البنكية الأسبوعية 📊
+                <button onclick="fetchCloudStats(); alert('تم تحديث البيانات الحية من السحابة بنجاح!')" class="w-full py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-amber-300 text-xs font-bold transition border gold-border cursor-pointer">
+                    تحديث البيانات الحية 🔄
                 </button>
             </div>
         </div>
@@ -243,36 +294,44 @@
                         <span class="text-xl">👑</span>
                         <h3 class="font-bold text-sm text-amber-300">لوحة تحكم المؤسس (نبيل النمر)</h3>
                     </div>
-                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full border gold-border font-medium">صلاحيات كاملة</span>
+                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full border gold-border font-medium">مباشر من السحابة</span>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div class="bg-neutral-900 p-3 rounded-2xl border gold-border text-center">
                         <span class="text-[11px] text-neutral-400 block mb-1">إجمالي الإيرادات الكلية</span>
-                        <span class="text-lg font-black text-amber-300">4,378 ر.س</span>
+                        <span id="founder-total-revenue" class="text-lg font-black text-amber-300">0 ر.س</span>
                     </div>
                     <div class="bg-neutral-900 p-3 rounded-2xl border gold-border text-center">
                         <span class="text-[11px] text-neutral-400 block mb-1">صافي أرباحك الفعلية</span>
-                        <span class="text-lg font-black text-emerald-400">1,628 ر.س</span>
+                        <span id="founder-net-profit" class="text-lg font-black text-emerald-400">0 ر.س</span>
                     </div>
                 </div>
 
                 <div class="space-y-2 mb-4 text-xs">
                     <div class="bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 flex justify-between items-center">
                         <span class="text-neutral-400">تكلفة الإنتاج الإجمالية (80 ر.س للقطعة):</span>
-                        <span class="font-bold text-white">960 ر.س (12 قطعة)</span>
+                        <span id="founder-total-cost" class="font-bold text-white">0 ر.س</span>
                     </div>
                     <div class="bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 flex justify-between items-center">
                         <span class="text-neutral-400">إجمالي عمولات المقاهي + الباريستا:</span>
-                        <span class="font-bold text-white">358.8 ر.س</span>
+                        <span id="founder-total-commissions" class="font-bold text-white">0 ر.س</span>
                     </div>
                     <div class="bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 flex justify-between items-center">
                         <span class="text-neutral-400">سفراء التأسيس المسجلون:</span>
-                        <span class="font-bold text-amber-300">12 / 20 عميلاً</span>
+                        <span id="founder-orders-count" class="font-bold text-amber-300">0 / 20 عميلاً</span>
                     </div>
                 </div>
 
-                <button onclick="alert('جارٍ جلب البيانات الحية من سحابة Firebase..')" class="w-full py-3 rounded-xl gold-btn text-xs font-bold transition shadow-lg cursor-pointer">
+                <!-- Live Orders Section -->
+                <div class="mb-4">
+                    <h4 class="text-xs font-bold text-amber-200 mb-2">سجل الطلبات الحية الواردة:</h4>
+                    <div id="live-orders-container" class="max-h-40 overflow-y-auto space-y-1">
+                        <p class="text-center text-neutral-500 text-xs">جاري تحميل الطلبات...</p>
+                    </div>
+                </div>
+
+                <button onclick="fetchCloudStats(); alert('تم تحديث إحصائيات المؤسس والمخزون من السحابة بنجاح!')" class="w-full py-3 rounded-xl gold-btn text-xs font-bold transition shadow-lg cursor-pointer">
                     تحديث مزامنة سحابة NFC والمخزون 🔄
                 </button>
             </div>
@@ -379,7 +438,8 @@
             let pin = prompt("أدخل الرقم السري الخاص بمالك المقهى:");
             if (pin === "7778") {
                 switchView('cafe');
-                alert("مرحباً بك يا شريكنا، تم فتح لوحة مبيعات المقهى بنجاح.");
+                if (window.fetchCloudStats) window.fetchCloudStats();
+                alert("مرحباً بك يا شريكنا، تم فتح لوحة مبيعات المقهى وجلب البيانات بنجاح.");
             } else if (pin !== null) {
                 alert("الرقم السري غير صحيح!");
             }
@@ -390,7 +450,8 @@
             let pin = prompt("أدخل الرقم السري الخاص بالمؤسس:");
             if (pin === "1984") {
                 switchView('founder');
-                alert("أهلاً بك يا مؤسس البراند (نبيل النمر)، تم فتح اللوحة الإدارية السرية.");
+                if (window.fetchCloudStats) window.fetchCloudStats();
+                alert("أهلاً بك يا مؤسس البراند (نبيل النمر)، تم فتح اللوحة الإدارية وجلب المبيعات الحية.");
             } else if (pin !== null) {
                 alert("الرقم السري غير صحيح!");
             }
@@ -410,7 +471,6 @@
                 status: "مؤكد - بانتظار الاستلام"
             };
 
-            // حفظ الطلب سحابياً إذا كانت الدالة متاحة
             if (window.saveOrderToCloud) {
                 await window.saveOrderToCloud(orderData);
             }
