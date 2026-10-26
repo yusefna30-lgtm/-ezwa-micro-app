@@ -26,7 +26,7 @@
         const db = getFirestore(app);
 
         let audioCtx = null;
-        const TELEGRAM_TOKEN = "8978898956:AAGCLNhpWLtj8FiVTONAvU6DwNMcwmkgLHo";[cite: 10]
+        const TELEGRAM_TOKEN = "8978898956:AAGt5hp_hKeQfN137LPnDtQzR5VS8bhEuYo";
 
         // دالة تفعيل الصوت للمتصفح
         window.enableAudio = function() {
@@ -37,28 +37,9 @@
             alert("تم تفعيل التنبيهات الصوتية بنجاح!");
         };
 
-        // دالة جلب Chat ID تلقائياً من داخل المتجر لتجنب أخطاء المتصفح
-        window.fetchMyChatId = async function() {
-            try {
-                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates`);
-                const data = await res.json();
-                if (data.ok && data.result.length > 0) {
-                    const chatId = data.result[0].message.chat.id;
-                    alert("رقم الـ Chat ID الخاص بك هو: " + chatId + "\n\nقم بنسخه وأخبرني به لنقوم بربطه نهائياً!");
-                } else {
-                    alert("لم يتم العثور على تفاعلات! تأكد أنك أرسلت رسالة (/start أو مرحبا) لبوتك @ezwa_store_bot في تيليجرام أولاً ثم حاول مجدداً.");
-                }
-            } catch (e) {
-                alert("حدث خطأ في الاتصال: " + e.message);
-            }
-        };
-
         // إرسال إشعار فوري إلى تيليجرام (حتى والشاشة مغلقة)
         async function sendTelegramNotification(orderText) {
-            // قم بتغيير رقم XXXXXX بالرقم الذي سيظهر لك عند الضغط على زر استخراج Chat ID
-            const CHAT_ID = "ضع_رقم_الـ_Chat_ID_هنا"; 
-            if (CHAT_ID === "ضع_رقم_الـ_Chat_ID_هنا") return;
-
+            const CHAT_ID = "884489443"; 
             try {
                 const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(orderText)}`;
                 await fetch(url);
@@ -91,7 +72,7 @@
             }
         }
 
-        // حفظ الطلب سحابياً
+        // حفظ الطلب سحابياً وإرسال تنبيه تيليجرام
         window.saveOrderToCloud = async function(orderData) {
             try {
                 await addDoc(collection(db, "orders"), {
@@ -99,7 +80,6 @@
                     createdAt: new Date().toISOString()
                 });
                 
-                // إرسال إشعار تيليجرام فوري
                 const msg = `🚨 طلب جديد في عِزوة!\n🧥 المنتج: ${orderData.product} (${orderData.size})\n🪑 الطاولة: ${orderData.table}\n💳 الدفع: ${orderData.paymentMethod}`;
                 sendTelegramNotification(msg);
 
@@ -145,12 +125,6 @@
                 document.getElementById('founder-orders-count').innerText = totalOrders + " / 20 عميلاً";
             }
 
-            if(document.getElementById('cafe-total-sales')) {
-                document.getElementById('cafe-total-sales').innerText = totalOrders + " قطعة";
-                document.getElementById('cafe-net-commission').innerText = (totalOrders * 19.9).toFixed(1) + " ر.س";
-                document.getElementById('cafe-barista-tip').innerText = (totalOrders * 10) + " ر.س";
-            }
-
             if (document.getElementById('live-orders-container')) {
                 document.getElementById('live-orders-container').innerHTML = ordersListHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد طلبات مسجلة حتى الآن.</p>';
             }
@@ -180,7 +154,7 @@
 
     <header class="w-full max-w-md mx-auto text-center py-6">
         <h1 class="text-3xl font-black tracking-widest gold-gradient mb-1">عِزوة | EZWA</h1>
-        <p id="page-subtitle" class="text-xs text-amber-200/70 tracking-wider">اكتشف الرياض — إصدار قصر المصمك</p>
+        <p class="text-xs text-amber-200/70 tracking-wider">اكتشف الرياض — إصدار قصر المصمك</p>
         
         <div class="flex justify-center gap-2 mt-4">
             <button onclick="switchView('table')" id="btn-table" class="px-3 py-1 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer">واجهة الشراء</button>
@@ -198,16 +172,11 @@
                 </div>
                 
                 <div class="w-full h-96 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
-                    <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover object-center transition duration-500 cursor-pointer" onclick="openZoomModal()">
+                    <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover object-center transition duration-500">
                     
                     <button onclick="toggleImageView()" class="absolute bottom-3 left-3 px-3.5 py-2 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1.5 cursor-pointer z-10">
                         <span>🔄</span>
                         <span id="toggle-btn-text">عرض الظهر والتصميم</span>
-                    </button>
-
-                    <button onclick="openZoomModal()" class="absolute top-3 left-3 px-3 py-1.5 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1 cursor-pointer z-10">
-                        <span>🔍</span>
-                        <span>تكبير</span>
                     </button>
                 </div>
 
@@ -241,24 +210,6 @@
                             <span class="text-[10px] text-neutral-400 line-through">398 ر.س</span>
                         </div>
                     </label>
-
-                    <label class="flex items-center justify-between p-3.5 rounded-xl border border-blue-500/40 bg-neutral-950/80 cursor-pointer hover:bg-blue-500/5 transition" onclick="toggleBankDetails(true)">
-                        <div class="flex items-center space-x-3 space-x-reverse">
-                            <input type="radio" name="purchase_option" id="opt-bank" class="accent-amber-500 w-4 h-4">
-                            <div>
-                                <span class="font-bold text-sm block text-amber-200">التحويل البنكي المباشر (الراجحي)</span>
-                                <span class="text-xs text-neutral-400">عرض تفاصيل الآيبان الرسمي للحساب</span>
-                            </div>
-                        </div>
-                        <span class="font-bold text-amber-300 text-base">199 ر.س</span>
-                    </label>
-
-                    <div id="bank-details-box" class="hidden bg-neutral-900 p-4 rounded-xl border border-amber-500/30 text-xs space-y-2 mt-2">
-                        <p class="font-bold text-amber-300 mb-1">بيانات الحساب البنكي الرسمي (عِزوة):</p>
-                        <p class="text-neutral-300">البنك: <span class="font-semibold text-white">مصرف الراجحي</span></p>
-                        <p class="text-neutral-300">رقم الحساب: <span class="font-mono text-amber-200 select-all">448000010006086270480</span></p>
-                        <p class="text-neutral-300">رقم الآيبان: <span class="font-mono text-amber-200 select-all">SA6280000448608016270480</span></p>
-                    </div>
                 </div>
 
                 <div class="mb-6">
@@ -309,13 +260,8 @@
                     <h3 class="font-bold text-sm text-amber-300">لوحة تحكم المؤسس (نبيل النمر)</h3>
                 </div>
                 
-                <button onclick="enableAudio()" class="w-full mb-2 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border gold-border hover:bg-amber-500 hover:text-black transition cursor-pointer">
+                <button onclick="enableAudio()" class="w-full mb-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border gold-border hover:bg-amber-500 hover:text-black transition cursor-pointer">
                     🔊 تفعيل التنبيهات الصوتية
-                </button>
-
-                <!-- زر استخراج Chat ID تلقائياً -->
-                <button onclick="fetchMyChatId()" class="w-full mb-4 py-2.5 rounded-xl bg-blue-500/20 text-blue-300 text-xs font-bold border border-blue-500/40 hover:bg-blue-500 hover:text-white transition cursor-pointer flex items-center justify-center gap-2">
-                    <span>🔍 اضغط هنا لاستخراج Chat ID تلقائياً</span>
                 </button>
 
                 <div class="grid grid-cols-2 gap-3 mb-4">
@@ -387,8 +333,6 @@
             if (show) box.classList.remove('hidden'); else box.classList.add('hidden');
         }
 
-        function openZoomModal() { alert('تكبير الصورة'); }
-
         function accessCafeDashboard() {
             let pin = prompt("الرقم السري للمقهى:");
             if (pin === "7778") switchView('cafe'); else if (pin !== null) alert("خطأ!");
@@ -400,14 +344,12 @@
         }
 
         async function processCheckout() {
-            let paymentMethod = "Apple Pay / شبكة";
-            if (document.getElementById('opt-bundle').checked) paymentMethod = "عرض الصديقين";
-            if (document.getElementById('opt-bank').checked) paymentMethod = "التحويل البنكي";
+            let selectedMethod = document.getElementById('opt-bundle').checked ? "عرض الصديقين" : "Apple Pay / شبكة";
 
             const orderData = {
                 product: "تيشيرت قصر المصمك",
                 size: selectedSize,
-                paymentMethod: paymentMethod,
+                paymentMethod: selectedMethod,
                 table: "#04",
                 status: "مؤكد - بانتظار الاستلام"
             };
