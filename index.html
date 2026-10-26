@@ -41,18 +41,18 @@
                     طاولة رقم #04 (مقهى مختص)
                 </div>
                 
-                <!-- Unified Image Frame (إطار عرض موحد مع object-contain لعرض الصورة بالكامل) -->
-                <div class="w-full h-80 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center p-2">
-                    <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="max-h-full max-w-full object-contain transition duration-500 cursor-pointer" onclick="openZoomModal()">
+                <!-- Unified Image Frame (إطار عرض موحد بأبعاد ثابتة وتغطية متطابقة 100%) -->
+                <div class="w-full h-96 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
+                    <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover object-center transition duration-500 cursor-pointer" onclick="openZoomModal()">
                     
                     <!-- Toggle Button Inside the Frame -->
-                    <button onclick="toggleImageView()" class="absolute bottom-3 left-3 px-3 py-1.5 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1 cursor-pointer z-10">
+                    <button onclick="toggleImageView()" class="absolute bottom-3 left-3 px-3.5 py-2 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1.5 cursor-pointer z-10">
                         <span>🔄</span>
                         <span id="toggle-btn-text">عرض الظهر والتصميم</span>
                     </button>
 
                     <!-- Zoom Button Inside the Frame -->
-                    <button onclick="openZoomModal()" class="absolute top-3 left-3 px-2.5 py-1.5 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1 cursor-pointer z-10">
+                    <button onclick="openZoomModal()" class="absolute top-3 left-3 px-3 py-1.5 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1 cursor-pointer z-10">
                         <span>🔍</span>
                         <span>تكبير</span>
                     </button>
@@ -268,7 +268,7 @@
             }
         }
 
-        // Toggle image view
+        // Toggle image view with identical cover proportions
         function toggleImageView() {
             const imgElement = document.getElementById('product-img');
             const btnText = document.getElementById('toggle-btn-text');
