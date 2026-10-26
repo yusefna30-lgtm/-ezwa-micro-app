@@ -17,17 +17,15 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-between p-4 selection:bg-amber-500 selection:text-black">
 
-    <!-- Header / Brand -->
+    <!-- Header / Brand (نظيف للعميل تماماً) -->
     <header class="w-full max-w-md mx-auto text-center py-6">
         <h1 class="text-3xl font-black tracking-widest gold-gradient mb-1">عِزوة | EZWA</h1>
         <p id="page-subtitle" class="text-xs text-amber-200/70 tracking-wider">اكتشف الرياض — إصدار قصر المصمك</p>
         
-        <!-- Toggle Demo Bar -->
-        <div class="flex justify-center flex-wrap gap-2 mt-4">
-            <button onclick="switchView('table')" id="btn-table" class="px-2.5 py-1 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer">واجهة الطاولة</button>
-            <button onclick="switchView('wallet')" id="btn-wallet" class="px-2.5 py-1 text-xs rounded-lg bg-neutral-800 text-amber-300 border gold-border transition cursor-pointer">محفظة العميل</button>
-            <button onclick="accessCafeDashboard()" class="px-2.5 py-1 text-xs rounded-lg bg-neutral-900 text-neutral-400 border border-neutral-700 transition cursor-pointer">☕ دخول المقهى</button>
-            <button onclick="accessFounderDashboard()" class="px-2.5 py-1 text-xs rounded-lg bg-neutral-900 text-amber-400 border border-amber-500/50 transition cursor-pointer">👑 لوحة المؤسس</button>
+        <!-- زر التبديل السريع التجريبي للعميل (الطاولة / محفظة السفير) -->
+        <div class="flex justify-center gap-2 mt-4">
+            <button onclick="switchView('table')" id="btn-table" class="px-3 py-1 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer">واجهة الشراء</button>
+            <button onclick="switchView('wallet')" id="btn-wallet" class="px-3 py-1 text-xs rounded-lg bg-neutral-800 text-amber-300 border gold-border transition cursor-pointer">محفظة السفير</button>
         </div>
     </header>
 
@@ -41,7 +39,7 @@
                     طاولة رقم #04 (مقهى مختص)
                 </div>
                 
-                <!-- Unified Image Frame (إطار عرض موحد بأبعاد ثابتة وتغطية متطابقة 100%) -->
+                <!-- Unified Image Frame -->
                 <div class="w-full h-96 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
                     <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover object-center transition duration-500 cursor-pointer" onclick="openZoomModal()">
                     
@@ -235,10 +233,16 @@
         <img id="modal-img" src="" alt="معاينة مكبرة" class="max-w-full max-h-[85vh] object-contain rounded-xl border border-amber-500/40 shadow-2xl">
     </div>
 
-    <!-- Footer -->
-    <footer class="w-full max-w-md mx-auto text-center py-4 text-[10px] text-neutral-500 border-t border-neutral-900">
-        إعداد وتطوير: نبيل النمر | عِزوة (EZWA) © 2026<br>
-        هاتف التواصل: +966502777884 | Riyadh, KSA
+    <!-- Footer (تم وضع أزرار دخول المقهى ولوحة المؤسس هنا بشكل فاخر وسري) -->
+    <footer class="w-full max-w-md mx-auto text-center py-6 text-[10px] text-neutral-500 border-t border-neutral-900 space-y-4">
+        <div class="flex justify-center gap-3">
+            <button onclick="accessCafeDashboard()" class="px-3 py-1.5 rounded-lg bg-neutral-900 text-neutral-400 border border-neutral-700 text-xs transition cursor-pointer hover:border-amber-500/50">☕ دخول المقهى</button>
+            <button onclick="accessFounderDashboard()" class="px-3 py-1.5 rounded-lg bg-neutral-900 text-amber-400 border border-amber-500/50 text-xs transition cursor-pointer hover:bg-amber-500/10">👑 لوحة المؤسس</button>
+        </div>
+        <div>
+            إعداد وتطوير: نبيل النمر | عِزوة (EZWA) © 2026<br>
+            هاتف التواصل: +966502777884 | Riyadh, KSA
+        </div>
     </footer>
 
     <!-- Script -->
@@ -268,7 +272,7 @@
             }
         }
 
-        // Toggle image view with identical cover proportions
+        // Toggle image view
         function toggleImageView() {
             const imgElement = document.getElementById('product-img');
             const btnText = document.getElementById('toggle-btn-text');
