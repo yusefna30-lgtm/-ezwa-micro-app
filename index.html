@@ -25,22 +25,38 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // تشغيل صوت تنبيه خفيف عند ورود طلب جديد
+        let audioCtx = null;
+
+        // دالة تفعيل وتوثيق الصوت للمتصفح
+        window.enableAudio = function() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            alert("تم تفعيل التنبيهات الصوتية بنجاح! ستسمع نغمة فور وصول أي طلب جديد.");
+        };
+
+        // تشغيل صوت تنبيه فاخر
         function playNotificationSound() {
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
                 oscillator.type = "sine";
                 oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime); // نغمة D5 فاخرة
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
                 oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.5);
+                oscillator.stop(audioCtx.currentTime + 0.6);
             } catch (e) {
-                console.log("Audio not supported or blocked");
+                console.log("Audio error: ", e);
             }
         }
 
@@ -57,7 +73,7 @@
             }
         };
 
-        // الاستماع الفوري والحي للتغييرات في قاعدة البيانات (Real-time Listener)
+        // الاستماع الفوري والحي للتغييرات في قاعدة البيانات
         let isFirstLoad = true;
         const q = query(collection(db, "orders"));
         onSnapshot(q, (querySnapshot) => {
@@ -86,7 +102,6 @@
             const totalCafeCommission = totalOrders * (19.9 + 10); 
             const netProfit = totalRevenue - totalCost - totalCafeCommission;
 
-            // تحديث واجهة لوحة المؤسس
             if(document.getElementById('founder-total-revenue')) {
                 document.getElementById('founder-total-revenue').innerText = totalRevenue + " ر.س";
                 document.getElementById('founder-net-profit').innerText = netProfit.toFixed(1) + " ر.س";
@@ -95,19 +110,17 @@
                 document.getElementById('founder-orders-count').innerText = totalOrders + " / 20 عميلاً";
             }
 
-            // تحديث واجهة لوحة المقهى
             if(document.getElementById('cafe-total-sales')) {
                 document.getElementById('cafe-total-sales').innerText = totalOrders + " قطعة";
                 document.getElementById('cafe-net-commission').innerText = (totalOrders * 19.9).toFixed(1) + " ر.س";
                 document.getElementById('cafe-barista-tip').innerText = (totalOrders * 10) + " ر.س";
             }
 
-            // تحديث قائمة الطلبات
             if (document.getElementById('live-orders-container')) {
                 document.getElementById('live-orders-container').innerHTML = ordersListHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد طلبات مسجلة حتى الآن.</p>';
             }
 
-            // إصدار تنبيه صوتي عند ورود طلب جديد حقيقي (بعد التحميل الأول)
+            // إصدار تنبيه صوتي عند ورود طلب جديد حقيقي
             if (!isFirstLoad && totalOrders > 0) {
                 playNotificationSound();
             }
@@ -152,13 +165,11 @@
                 <div class="w-full h-96 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
                     <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover object-center transition duration-500 cursor-pointer" onclick="openZoomModal()">
                     
-                    <!-- Toggle Button Inside the Frame -->
                     <button onclick="toggleImageView()" class="absolute bottom-3 left-3 px-3.5 py-2 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1.5 cursor-pointer z-10">
                         <span>🔄</span>
                         <span id="toggle-btn-text">عرض الظهر والتصميم</span>
                     </button>
 
-                    <!-- Zoom Button Inside the Frame -->
                     <button onclick="openZoomModal()" class="absolute top-3 left-3 px-3 py-1.5 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1 cursor-pointer z-10">
                         <span>🔍</span>
                         <span>تكبير</span>
@@ -284,11 +295,16 @@
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-neutral-800">
                     <div class="flex items-center space-x-2 space-x-reverse">
                         <span class="text-xl">☕</span>
-                        <h3 class="font-bold text-sm text-amber-200">لوحة تحكم الشريك (حساب المقهى)</h3>
+                        <h3 class="font-bold text-sm text-amber-200">لوحة تحكم الشريك (المقهى)</h3>
                     </div>
                     <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-medium">مباشر ولحظي ⚡</span>
                 </div>
                 
+                <!-- Audio Enable Button for Browser -->
+                <button onclick="enableAudio()" class="w-full mb-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/40 hover:bg-amber-500 hover:text-black transition cursor-pointer flex items-center justify-center gap-2">
+                    <span>🔊 اضغط هنا أولاً لتفعيل التنبيهات الصوتية</span>
+                </button>
+
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div class="bg-neutral-900 p-3 rounded-2xl border border-neutral-800 text-center">
                         <span class="text-[11px] text-neutral-400 block mb-1">إجمالي المبيعات (طاولاتك)</span>
@@ -300,12 +316,10 @@
                     </div>
                 </div>
 
-                <div class="bg-neutral-900/60 p-3 rounded-2xl border border-neutral-800 flex items-center justify-between text-xs mb-4">
-                    <span class="text-neutral-400">حافز الباريستا المترصد (10 ر.س لكل قطعة):</span>
+                <div class="bg-neutral-900/60 p-3 rounded-2xl border border-neutral-800 flex items-center justify-between text-xs">
+                    <span class="text-neutral-400">حافز الباريستا المترصد:</span>
                     <span id="cafe-barista-tip" class="font-bold text-amber-200">0 ر.س</span>
                 </div>
-
-                <p class="text-[10px] text-neutral-400 text-center">تتحدث هذه اللوحة تلقائياً فور ورود أي طلب جديد من طاولات المقهى.</p>
             </div>
         </div>
 
@@ -320,6 +334,11 @@
                     <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full border gold-border font-medium">مباشر ولحظي ⚡</span>
                 </div>
                 
+                <!-- Audio Enable Button for Browser -->
+                <button onclick="enableAudio()" class="w-full mb-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border gold-border hover:bg-amber-500 hover:text-black transition cursor-pointer flex items-center justify-center gap-2">
+                    <span>🔊 اضغط هنا أولاً لتفعيل التنبيهات الصوتية</span>
+                </button>
+
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div class="bg-neutral-900 p-3 rounded-2xl border gold-border text-center">
                         <span class="text-[11px] text-neutral-400 block mb-1">إجمالي الإيرادات الكلية</span>
@@ -333,11 +352,11 @@
 
                 <div class="space-y-2 mb-4 text-xs">
                     <div class="bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 flex justify-between items-center">
-                        <span class="text-neutral-400">تكلفة الإنتاج الإجمالية (80 ر.س للقطعة):</span>
+                        <span class="text-neutral-400">تكلفة الإنتاج الإجمالية (80 ر.س):</span>
                         <span id="founder-total-cost" class="font-bold text-white">0 ر.س</span>
                     </div>
                     <div class="bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 flex justify-between items-center">
-                        <span class="text-neutral-400">إجمالي عمولات المقاهي + الباريستا:</span>
+                        <span class="text-neutral-400">إجمالي العمولات + الحوافز:</span>
                         <span id="founder-total-commissions" class="font-bold text-white">0 ر.س</span>
                     </div>
                     <div class="bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 flex justify-between items-center">
@@ -404,13 +423,10 @@
             }
         }
 
-        // Toggle image view
         function toggleImageView() {
             const imgElement = document.getElementById('product-img');
             const btnText = document.getElementById('toggle-btn-text');
-
             isFrontView = !isFrontView;
-
             if (isFrontView) {
                 imgElement.src = "masmak-back1.jpg";
                 btnText.innerText = "عرض الظهر والتصميم";
@@ -420,7 +436,6 @@
             }
         }
 
-        // Select size
         function selectSize(size, btn) {
             selectedSize = size;
             document.querySelectorAll('.size-btn').forEach(b => {
@@ -431,17 +446,11 @@
             btn.classList.remove('text-neutral-200');
         }
 
-        // Show/Hide Bank Details box
         function toggleBankDetails(show) {
             const box = document.getElementById('bank-details-box');
-            if (show) {
-                box.classList.remove('hidden');
-            } else {
-                box.classList.add('hidden');
-            }
+            if (show) { box.classList.remove('hidden'); } else { box.classList.add('hidden'); }
         }
 
-        // Zoom Modal Functions
         function openZoomModal() {
             const currentImgSrc = document.getElementById('product-img').src;
             document.getElementById('modal-img').src = currentImgSrc;
@@ -452,7 +461,6 @@
             document.getElementById('zoomModal').classList.add('hidden');
         }
 
-        // Cafe Auth
         function accessCafeDashboard() {
             let pin = prompt("أدخل الرقم السري الخاص بمالك المقهى:");
             if (pin === "7778") {
@@ -463,7 +471,6 @@
             }
         }
 
-        // Founder Auth
         function accessFounderDashboard() {
             let pin = prompt("أدخل الرقم السري الخاص بالمؤسس:");
             if (pin === "1984") {
@@ -474,7 +481,6 @@
             }
         }
 
-        // Process Checkout & Save to Firebase Cloud
         async function processCheckout() {
             let paymentMethod = "Apple Pay / شبكة";
             if (document.getElementById('opt-bundle').checked) paymentMethod = "عرض الصديقين";
