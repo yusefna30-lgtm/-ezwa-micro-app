@@ -22,7 +22,7 @@
         <h1 class="text-3xl font-black tracking-widest gold-gradient mb-1">عِزوة | EZWA</h1>
         <p id="page-subtitle" class="text-xs text-amber-200/70 tracking-wider">اكتشف الرياض — إصدار قصر المصمك</p>
         
-        <!-- Toggle Demo Bar (أزرار التنقل السريع للتجربة) -->
+        <!-- Toggle Demo Bar -->
         <div class="flex justify-center flex-wrap gap-2 mt-4">
             <button onclick="switchView('table')" id="btn-table" class="px-2.5 py-1 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer">واجهة الطاولة</button>
             <button onclick="switchView('wallet')" id="btn-wallet" class="px-2.5 py-1 text-xs rounded-lg bg-neutral-800 text-amber-300 border gold-border transition cursor-pointer">محفظة العميل</button>
@@ -34,21 +34,27 @@
     <!-- Main Container -->
     <main class="w-full max-w-md mx-auto space-y-6 mb-10">
 
-        <!-- VIEW 1: TABLE SHOPPING VIEW (واجهة الطاولة للشراء) -->
+        <!-- VIEW 1: TABLE SHOPPING VIEW -->
         <div id="view-table" class="space-y-6">
             <div class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-300 text-xs px-3 py-1 rounded-bl-xl border-l border-b border-amber-500/30 font-medium z-10">
                     طاولة رقم #04 (مقهى مختص)
                 </div>
                 
-                <!-- Unified Image Frame (إطار عرض موحد للصورة مع زر تقليب داخلي) -->
-                <div class="w-full h-80 rounded-2xl bg-neutral-900 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
-                    <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover transition duration-500">
+                <!-- Unified Image Frame (إطار عرض موحد مع object-contain لعرض الصورة بالكامل) -->
+                <div class="w-full h-80 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center p-2">
+                    <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="max-h-full max-w-full object-contain transition duration-500 cursor-pointer" onclick="openZoomModal()">
                     
-                    <!-- Single Toggle Button Inside the Frame -->
-                    <button onclick="toggleImageView()" class="absolute bottom-3 left-3 px-3.5 py-1.5 bg-neutral-950/80 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1.5 cursor-pointer z-10">
+                    <!-- Toggle Button Inside the Frame -->
+                    <button onclick="toggleImageView()" class="absolute bottom-3 left-3 px-3 py-1.5 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1 cursor-pointer z-10">
                         <span>🔄</span>
                         <span id="toggle-btn-text">عرض الظهر والتصميم</span>
+                    </button>
+
+                    <!-- Zoom Button Inside the Frame -->
+                    <button onclick="openZoomModal()" class="absolute top-3 left-3 px-2.5 py-1.5 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1 cursor-pointer z-10">
+                        <span>🔍</span>
+                        <span>تكبير</span>
                     </button>
                 </div>
 
@@ -102,7 +108,7 @@
             </div>
         </div>
 
-        <!-- VIEW 2: CUSTOMER AMBASSADOR WALLET (محفظة العميل - تفتح عبر شريحة التيشيرت) -->
+        <!-- VIEW 2: CUSTOMER AMBASSADOR WALLET -->
         <div id="view-wallet" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-5 border gold-border">
                 <div class="flex items-center space-x-3 space-x-reverse mb-3">
@@ -145,7 +151,7 @@
             </div>
         </div>
 
-        <!-- VIEW 3: CAFE PARTNER DASHBOARD (لوحة تحكم المقهى - محمية برقم سري 7778) -->
+        <!-- VIEW 3: CAFE PARTNER DASHBOARD -->
         <div id="view-cafe" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-5 border border-amber-500/40 bg-neutral-950">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-neutral-800">
@@ -178,7 +184,7 @@
             </div>
         </div>
 
-        <!-- VIEW 4: FOUNDER DASHBOARD (لوحة تحكم المؤسس - محمية برقم سري 1984) -->
+        <!-- VIEW 4: FOUNDER DASHBOARD -->
         <div id="view-founder" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-5 border-2 gold-border bg-neutral-950">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-500/30">
@@ -223,6 +229,12 @@
 
     </main>
 
+    <!-- Fullscreen Image Zoom Modal -->
+    <div id="zoomModal" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 hidden">
+        <button onclick="closeZoomModal()" class="absolute top-5 left-5 px-4 py-2 bg-neutral-900 text-amber-300 rounded-xl border gold-border text-sm font-bold cursor-pointer hover:bg-amber-500 hover:text-black transition">إغلاق ✕</button>
+        <img id="modal-img" src="" alt="معاينة مكبرة" class="max-w-full max-h-[85vh] object-contain rounded-xl border border-amber-500/40 shadow-2xl">
+    </div>
+
     <!-- Footer -->
     <footer class="w-full max-w-md mx-auto text-center py-4 text-[10px] text-neutral-500 border-t border-neutral-900">
         إعداد وتطوير: نبيل النمر | عِزوة (EZWA) © 2026<br>
@@ -256,7 +268,7 @@
             }
         }
 
-        // دالة زر التقليب الفردي (Toggle) داخل نفس الإطار
+        // Toggle image view
         function toggleImageView() {
             const imgElement = document.getElementById('product-img');
             const btnText = document.getElementById('toggle-btn-text');
@@ -272,7 +284,18 @@
             }
         }
 
-        // 1. الدخول لحساب المقهى (الرقم السري الافتراضي: 7778)
+        // Zoom Modal Functions
+        function openZoomModal() {
+            const currentImgSrc = document.getElementById('product-img').src;
+            document.getElementById('modal-img').src = currentImgSrc;
+            document.getElementById('zoomModal').classList.remove('hidden');
+        }
+
+        function closeZoomModal() {
+            document.getElementById('zoomModal').classList.add('hidden');
+        }
+
+        // Cafe Auth
         function accessCafeDashboard() {
             let pin = prompt("أدخل الرقم السري الخاص بمالك المقهى:");
             if (pin === "7778") {
@@ -283,7 +306,7 @@
             }
         }
 
-        // 2. الدخول لوحة المؤسس (الرقم السري الافتراضي: 1984)
+        // Founder Auth
         function accessFounderDashboard() {
             let pin = prompt("أدخل الرقم السري الخاص بالمؤسس:");
             if (pin === "1984") {
