@@ -37,17 +37,24 @@
         <!-- VIEW 1: TABLE SHOPPING VIEW (واجهة الطاولة للشراء) -->
         <div id="view-table" class="space-y-6">
             <div class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-300 text-xs px-3 py-1 rounded-bl-xl border-l border-b border-amber-500/30 font-medium">
+                <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-300 text-xs px-3 py-1 rounded-bl-xl border-l border-b border-amber-500/30 font-medium z-10">
                     طاولة رقم #04 (مقهى مختص)
                 </div>
                 
-                <div class="w-full h-64 rounded-2xl bg-neutral-900 mb-5 flex items-center justify-center relative overflow-hidden border gold-border">
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-900/30 via-neutral-950 to-neutral-950"></div>
-                    <div class="text-center z-10 p-4">
-                        <span class="text-5xl">🏛️</span>
-                        <h3 class="font-bold text-lg mt-3 text-amber-100">تيشيرت قصر المصمك (Boxy Fit)</h3>
-                        <p class="text-xs text-neutral-400 mt-1">قطن ثقيل فاخر 380gsm مع شريحة NFC وتوثيق سحابي</p>
-                    </div>
+                <!-- Unified Image Frame (إطار عرض موحد للصورة مع زر تقليب داخلي) -->
+                <div class="w-full h-80 rounded-2xl bg-neutral-900 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
+                    <img id="product-img" src="masmak-front1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover transition duration-500">
+                    
+                    <!-- Single Toggle Button Inside the Frame -->
+                    <button onclick="toggleImageView()" class="absolute bottom-3 left-3 px-3.5 py-1.5 bg-neutral-950/80 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1.5 cursor-pointer z-10">
+                        <span>🔄</span>
+                        <span id="toggle-btn-text">عرض الظهر والتصميم</span>
+                    </button>
+                </div>
+
+                <div class="text-center mb-4">
+                    <h3 class="font-bold text-lg text-amber-100">تيشيرت قصر المصمك (Boxy Fit)</h3>
+                    <p class="text-xs text-neutral-400 mt-1">قطن ثقيل فاخر 380gsm مع شريحة NFC وتوثيق سحابي</p>
                 </div>
 
                 <!-- Pricing Options -->
@@ -82,10 +89,10 @@
                 <div class="mb-6">
                     <label class="block text-xs text-neutral-400 mb-2 font-medium">اختر المقاس:</label>
                     <div class="grid grid-cols-4 gap-2 text-center">
-                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200">S</button>
-                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold bg-amber-500 text-black shadow-md">M</button>
-                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200">L</button>
-                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200">XL</button>
+                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">S</button>
+                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold bg-amber-500 text-black shadow-md cursor-pointer">M</button>
+                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">L</button>
+                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">XL</button>
                     </div>
                 </div>
 
@@ -224,6 +231,8 @@
 
     <!-- Script -->
     <script>
+        let isFrontView = true;
+
         function switchView(view) {
             document.getElementById('view-table').classList.add('hidden');
             document.getElementById('view-wallet').classList.add('hidden');
@@ -247,6 +256,22 @@
             }
         }
 
+        // دالة زر التقليب الفردي (Toggle) داخل نفس الإطار
+        function toggleImageView() {
+            const imgElement = document.getElementById('product-img');
+            const btnText = document.getElementById('toggle-btn-text');
+
+            isFrontView = !isFrontView;
+
+            if (isFrontView) {
+                imgElement.src = "masmak-front1.jpg";
+                btnText.innerText = "عرض الظهر والتصميم";
+            } else {
+                imgElement.src = "masmak-back1.jpg";
+                btnText.innerText = "عرض الوجه الأمامي";
+            }
+        }
+
         // 1. الدخول لحساب المقهى (الرقم السري الافتراضي: 7778)
         function accessCafeDashboard() {
             let pin = prompt("أدخل الرقم السري الخاص بمالك المقهى:");
@@ -258,7 +283,7 @@
             }
         }
 
-        // 2. الدخول لوحة المؤسس (الرقم السري الافتراضي: 1984 - يمكنك تعديله لاحقاً)
+        // 2. الدخول لوحة المؤسس (الرقم السري الافتراضي: 1984)
         function accessFounderDashboard() {
             let pin = prompt("أدخل الرقم السري الخاص بالمؤسس:");
             if (pin === "1984") {
