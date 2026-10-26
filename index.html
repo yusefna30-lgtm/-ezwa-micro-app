@@ -3,268 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عِزوة | EZWA - متجر القهوة والتراث</title>
-    <!-- استيراد خط عربي فاخر -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0b0b0b;
-            --card-bg: #161616;
-            --gold: #d4af37;
-            --gold-light: #f3e5ab;
-            --text-main: #f5f5f5;
-            --text-muted: #aaaaaa;
-            --burgundy: #4a151b;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-            background: var(--card-bg);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-            margin-top: 20px;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 24px;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-            padding-bottom: 16px;
-        }
-
-        header h1 {
-            color: var(--gold);
-            font-size: 1.8rem;
-            font-weight: 900;
-            letter-spacing: 1px;
-        }
-
-        header p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-top: 4px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        label {
-            display: block;
-            color: var(--gold-light);
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 12px 14px;
-            background: #0f0f0f;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: var(--text-main);
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        select:focus, input:focus {
-            border-color: var(--gold);
-        }
-
-        .btn-submit {
-            width: 100%;
-            background: linear-gradient(135deg, #d4af37, #aa8c2c);
-            color: #000;
-            font-weight: 700;
-            font-size: 1.1rem;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: opacity 0.3s;
-        }
-
-        .btn-submit:hover {
-            opacity: 0.9;
-        }
-
-        /* نافذة النجاح ورقم الطلب */
-        #successCard {
-            display: none;
-            text-align: center;
-            background: #111;
-            border: 2px solid var(--gold);
-            border-radius: 12px;
-            padding: 24px;
-            margin-top: 20px;
-        }
-
-        #successCard h2 {
-            color: var(--gold);
-            font-size: 1.4rem;
-            margin-bottom: 10px;
-        }
-
-        .order-number-box {
-            background: var(--burgundy);
-            color: var(--gold-light);
-            font-size: 2.2rem;
-            font-weight: 900;
-            padding: 12px;
-            border-radius: 8px;
-            letter-spacing: 3px;
-            margin: 15px 0;
-            border: 1px dashed var(--gold);
-        }
-
-        #successCard p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-    </style>
-
-    <!-- ربط فايربيس (Firebase SDK) -->
+    <title>عِزوة | EZWA - اكتشف الرياض (إصدار قصر المصمك)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // إعدادات مشروعك في Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyDummyKeyForEzwaStoreApp99",
+            apiKey: "AIzaSyCBcWfYs1iAbKMWFhLaSy8puN-g_N43wxc",
             authDomain: "ezwa-store.firebaseapp.com",
             projectId: "ezwa-store",
-            storageBucket: "ezwa-store.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef"
+            storageBucket: "ezwa-store.firebasestorage.app",
+            messagingSenderId: "432864513291",
+            appId: "1:432864513291:web:332c83ee7d867f6d35a60e",
+            measurementId: "G-M5QS8E1FHH"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // جعل دالة الطلب متاحة عالمياً في الصفحة
-        window.submitOrder = async function() {
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerText = "جاري إرسال الطلب...";
+        let audioCtx = null;
+        const TELEGRAM_TOKEN = "8978898956:AAGCLNhpWLtj8FiVTONAvU6DwNMcwmkgLHo";
 
-            // 1. توليد رقم طلب تسلسلي فريد
-            const orderNumber = 'EZ-' + Math.floor(1000 + Math.random() * 9000);
+        window.enableAudio = function() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+            alert("تم تفعيل التنبيهات الصوتية بنجاح!");
+        };
 
-            const selectedProduct = document.getElementById('productSelect').value;
-            const selectedSize = document.getElementById('sizeSelect').value;
-            const selectedTable = document.getElementById('tableSelect').value;
-            const selectedPayment = document.getElementById('paymentSelect').value;
-
-            const orderData = {
-                orderId: orderNumber,
-                product: selectedProduct,
-                size: selectedSize,
-                table: selectedTable,
-                paymentMethod: selectedPayment,
-                createdAt: new Date().toISOString()
-            };
-
+        async function sendTelegramNotification(orderText) {
+            const CHAT_ID = "884489443"; // رقمك المعتمد للتنبيهات
             try {
-                // حفظ الطلب في قاعدة البيانات السحابية
-                await addDoc(collection(db, "orders"), orderData);
-
-                // إخفاء نموذج الطلب وإظهار كارت النجاح ورقم الطلب
-                document.getElementById('orderForm').style.display = 'none';
-                document.getElementById('successCard').style.display = 'block';
-                document.getElementById('orderNumberDisplay').innerText = orderNumber;
-
+                const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(orderText)}`;
+                await fetch(url);
             } catch (e) {
-                console.error("خطأ في إرسال الطلب: ", e);
-                alert("حدث خطأ بسيط، يرجى المحاولة مرة أخرى.");
-                btn.disabled = false;
-                btn.innerText = "تأكيد وإرسال الطلب";
+                console.log("Telegram error: ", e);
+            }
+        }
+
+        function playNotificationSound() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = "sine";
+                oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.6);
+            } catch (e) { console.log("Audio error: ", e); }
+        }
+
+        window.saveOrderToCloud = async function(orderData) {
+            try {
+                await addDoc(collection(db, "orders"), {
+                    ...orderData,
+                    createdAt: new Date().toISOString()
+                });
+                
+                const msg = `🚨 طلب جديد في عِزوة!\n🧥 المنتج: ${orderData.product} (${orderData.size})\n🪑 الطاولة: ${orderData.table}\n💳 الدفع: ${orderData.paymentMethod}\n🆔 رقم الطلب: ${orderData.orderId}`;
+                sendTelegramNotification(msg);
+                console.log("تم حفظ الطلب وإرسال تنبيه تيليجرام بنجاح!");
+            } catch (e) {
+                console.error("خطأ في حفظ الطلب: ", e);
             }
         };
-    </script>
-</head>
-<body>
 
-    <header>
-        <h1>عِزوة | EZWA</h1>
-        <p>تجربة التراث والأزياء الفاخرة - مقهى قصر المصمك</p>
+        const q = query(collection(db, "orders"));
+        onSnapshot(q, (querySnapshot) => {
+            let totalOrders = 0;
+            let ordersListHtml = "";
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                totalOrders++;
+                ordersListHtml += `
+                    <div class="bg-neutral-900 p-3 rounded-xl border border-neutral-800 flex justify-between items-center text-xs mb-2">
+                        <div>
+                            <span class="font-bold text-amber-300 block">${data.product} (${data.size}) - ${data.orderId || ''}</span>
+                            <span class="text-[10px] text-neutral-400">الطاولة: ${data.table} | الدفع: ${data.paymentMethod}</span>
+                        </div>
+                        <span class="text-emerald-400 font-medium text-[11px]">${data.status}</span>
+                    </div>
+                `;
+            });
+
+            const unitPrice = 199;
+            const costPerItem = 80;
+            const totalRevenue = totalOrders * unitPrice;
+            const totalCost = totalOrders * costPerItem;
+            const totalCafeCommission = totalOrders * 29.9; 
+            const netProfit = totalRevenue - totalCost - totalCafeCommission;
+
+            if(document.getElementById('founder-total-revenue')) {
+                document.getElementById('founder-total-revenue').innerText = totalRevenue + " ر.س";
+                document.getElementById('founder-net-profit').innerText = netProfit.toFixed(1) + " ر.س";
+                document.getElementById('founder-orders-count').innerText = totalOrders + " طلبات";
+            }
+            if (document.getElementById('live-orders-container')) {
+                document.getElementById('live-orders-container').innerHTML = ordersListHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد طلبات مسجلة حتى الآن.</p>';
+            }
+        });
+    </script>
+
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #050505; color: #f3f4f6; }
+        .glass { background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(16px); border: 1px solid rgba(212, 175, 55, 0.25); }
+        .gold-gradient { background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gold-border { border-color: rgba(212, 175, 55, 0.4); }
+        .gold-btn { background: linear-gradient(135deg, #D4AF37 0%, #AA771C 100%); color: #050505; font-weight: 700; }
+        .gold-btn:hover { background: linear-gradient(135deg, #E6C657 0%, #C28B22 100%); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 selection:bg-amber-500 selection:text-black">
+
+    <header class="w-full max-w-md mx-auto text-center py-4">
+        <h1 class="text-2xl font-black tracking-widest gold-gradient mb-1">عِزوة | EZWA</h1>
+        <p class="text-xs text-amber-200/70 tracking-wider">اكتشف الرياض — إصدار قصر المصمك</p>
+        
+        <div class="flex justify-center gap-2 mt-3">
+            <button onclick="switchView('table')" id="btn-table" class="px-3 py-1 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer">واجهة الشراء</button>
+            <button onclick="switchView('founder')" id="btn-founder" class="px-3 py-1 text-xs rounded-lg bg-neutral-800 text-amber-300 border gold-border transition cursor-pointer">لوحة التحكم</button>
+        </div>
     </header>
 
-    <div class="container">
-        <!-- نموذج الطلب -->
-        <div id="orderForm">
-            <div class="form-group">
-                <label for="productSelect">اختر القطعة:</label>
-                <select id="productSelect">
-                    <option value="تيشيرت عِزوة - قصر المصمك (بورغندي)">تيشيرت قصر المصمك (بورغندي مع تطريز السدو)</option>
-                </select>
-            </div>
+    <main class="w-full max-w-md mx-auto space-y-4 mb-6">
 
-            <div class="form-group">
-                <label for="sizeSelect">اختر المقاس:</label>
-                <select id="sizeSelect">
-                    <option value="S">Small (S)</option>
-                    <option value="M">Medium (M)</option>
-                    <option value="L" selected>Large (L)</option>
-                    <option value="XL">X-Large (XL)</option>
-                    <option value="XXL">XX-Large (XXL)</option>
-                </select>
-            </div>
+        <!-- VIEW 1: TABLE SHOPPING -->
+        <div id="view-table" class="space-y-4">
+            <div class="glass rounded-2xl p-4 shadow-xl relative">
+                <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-300 text-[11px] px-3 py-1 rounded-bl-xl border-l border-b border-amber-500/30 font-medium z-10">
+                    طاولة رقم #04
+                </div>
+                
+                <!-- صندوق الصورة بحجم متناسق لا يغطي الشاشة -->
+                <div class="w-full h-56 rounded-xl bg-neutral-900 mb-3 relative overflow-hidden border gold-border flex items-center justify-center">
+                    <div class="text-center p-4">
+                        <span class="text-3xl block mb-1">🧥</span>
+                        <span class="text-xs text-amber-300 font-bold">تيشيرت قصر المصمك (بورغندي)</span>
+                        <p class="text-[10px] text-neutral-400 mt-1">مطرز بالتوثيق السحابي و شريحة NFC</p>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label for="tableSelect">رقم الطاولة:</label>
-                <select id="tableSelect">
-                    <option value="الطاولة #01">الطاولة #01</option>
-                    <option value="الطاولة #02">الطاولة #02</option>
-                    <option value="الطاولة #03">الطاولة #03</option>
-                    <option value="الطاولة #04" selected>الطاولة #04</option>
-                    <option value="الطاولة #05">الطاولة #05</option>
-                    <option value="جلسة التراث الخارجية">جلسة التراث الخارجية</option>
-                </select>
-            </div>
+                <div class="space-y-2.5 mb-4">
+                    <label class="flex items-center justify-between p-3 rounded-xl border gold-border bg-neutral-950/60 cursor-pointer">
+                        <div class="flex items-center space-x-2.5 space-x-reverse">
+                            <input type="radio" name="purchase_option" id="opt-single" checked class="accent-amber-500 w-4 h-4">
+                            <div>
+                                <span class="font-bold text-xs block text-neutral-200">قطعة مفردة + قهوة مختصة مجانية</span>
+                            </div>
+                        </div>
+                        <span class="font-bold text-amber-300 text-sm">199 ر.س</span>
+                    </label>
+                </div>
 
-            <div class="form-group">
-                <label for="paymentSelect">طريقة الدفع:</label>
-                <select id="paymentSelect">
-                    <option value="بطاقة مدى / ابل باي">بطاقة مدى / Apple Pay</option>
-                    <option value="الدفع النقدي عند الكاونتر">الدفع النقدي عند الكاونتر</option>
-                </select>
-            </div>
+                <div class="mb-4">
+                    <label class="block text-xs text-neutral-400 mb-1.5 font-medium">اختر المقاس:</label>
+                    <div id="size-selector" class="grid grid-cols-4 gap-2 text-center">
+                        <button type="button" onclick="selectSize('S', this)" class="size-btn py-2 rounded-lg border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">S</button>
+                        <button type="button" onclick="selectSize('M', this)" class="size-btn py-2 rounded-lg border gold-border text-xs font-bold bg-amber-500 text-black shadow-md cursor-pointer">M</button>
+                        <button type="button" onclick="selectSize('L', this)" class="size-btn py-2 rounded-lg border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">L</button>
+                        <button type="button" onclick="selectSize('XL', this)" class="size-btn py-2 rounded-lg border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">XL</button>
+                    </div>
+                </div>
 
-            <button id="submitBtn" class="btn-submit" onclick="submitOrder()">تأكيد وإرسال الطلب</button>
+                <button onclick="processCheckout()" class="w-full py-3.5 rounded-xl gold-btn shadow-lg flex items-center justify-center space-x-2 space-x-reverse tracking-wider text-xs cursor-pointer">
+                    <span>إتمام الطلب والاستلام الفوري ☕</span>
+                </button>
+            </div>
         </div>
 
-        <!-- رسالة النجاح ورقم الطلب للعميل -->
-        <div id="successCard">
-            <h2>تم إرسال طلبك بنجاح! ☕✨</h2>
-            <p>أبرز هذا الرقم للباريستا عند الكاونتر لاستلام طلبك فوراً:</p>
-            <div class="order-number-box" id="orderNumberDisplay">EZ-0000</div>
-            <p style="margin-top: 15px; color: var(--gold-light);">شكراً لاختيارك عِزوة. نتشرف بخدمتك!</p>
+        <!-- VIEW 2: FOUNDER DASHBOARD -->
+        <div id="view-founder" class="space-y-4 hidden">
+            <div class="glass rounded-2xl p-4 border-2 gold-border bg-neutral-950">
+                <h3 class="font-bold text-xs text-amber-300 mb-3 pb-2 border-b border-amber-500/30">لوحة تحكم المؤسس</h3>
+                <button onclick="enableAudio()" class="w-full mb-3 py-2 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border gold-border cursor-pointer">
+                    🔊 تفعيل التنبيهات الصوتية للطلبات
+                </button>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="bg-neutral-900 p-2.5 rounded-xl border gold-border text-center">
+                        <span class="text-[10px] text-neutral-400 block">الإيرادات</span>
+                        <span id="founder-total-revenue" class="text-sm font-black text-amber-300">0 ر.س</span>
+                    </div>
+                    <div class="bg-neutral-900 p-2.5 rounded-xl border gold-border text-center">
+                        <span class="text-[10px] text-neutral-400 block">صافي الأرباح</span>
+                        <span id="founder-net-profit" class="text-sm font-black text-emerald-400">0 ر.س</span>
+                    </div>
+                </div>
+                <h4 class="text-[11px] font-bold text-amber-200 mb-2">الطلبات الحية:</h4>
+                <div id="live-orders-container" class="max-h-36 overflow-y-auto space-y-1">
+                    <p class="text-center text-neutral-500 text-xs">جاري المزامنة...</p>
+                </div>
+            </div>
         </div>
-    </div>
 
+    </main>
+
+    <footer class="w-full max-w-md mx-auto text-center py-4 text-[10px] text-neutral-500 border-t border-neutral-900">
+        <div>عِزوة (EZWA) © 2026</div>
+    </footer>
+
+    <script>
+        let selectedSize = 'M';
+
+        function switchView(view) {
+            document.getElementById('view-table').classList.add('hidden');
+            document.getElementById('view-founder').classList.add('hidden');
+            if (view === 'table') document.getElementById('view-table').classList.remove('hidden');
+            else if (view === 'founder') document.getElementById('view-founder').classList.remove('hidden');
+        }
+
+        function selectSize(size, btn) {
+            selectedSize = size;
+            document.querySelectorAll('.size-btn').forEach(b => {
+                b.classList.remove('bg-amber-500', 'text-black', 'shadow-md');
+                b.classList.add('text-neutral-200');
+            });
+            btn.classList.add('bg-amber-500', 'text-black', 'shadow-md');
+            btn.classList.remove('text-neutral-200');
+        }
+
+        async function processCheckout() {
+            const orderNumber = 'EZ-' + Math.floor(1000 + Math.random() * 9000);
+            const orderData = {
+                orderId: orderNumber,
+                product: "تيشيرت قصر المصمك",
+                size: selectedSize,
+                paymentMethod: "Apple Pay / شبكة",
+                table: "#04",
+                status: "مؤكد - بانتظار الاستلام"
+            };
+
+            if (window.saveOrderToCloud) await window.saveOrderToCloud(orderData);
+            alert("تم إتمام الطلب بنجاح! رقم طلبك: " + orderNumber + "\nأبرز هذا الرقم للباريستا لاستلام طلبك فوراً.");
+        }
+    </script>
 </body>
 </html>
