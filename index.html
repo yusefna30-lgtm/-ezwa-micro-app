@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
-    <!-- Firebase SDKs via CDN with Real-time Listener -->
+    <!-- Firebase SDKs & Telegram Integration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -26,15 +26,46 @@
         const db = getFirestore(app);
 
         let audioCtx = null;
+        const TELEGRAM_TOKEN = "8978898956:AAGCLNhpWLtj8FiVTONAvU6DwNMcwmkgLHo";[cite: 10]
 
-        // دالة تفعيل وتوثيق الصوت للمتصفح
+        // دالة تفعيل الصوت للمتصفح
         window.enableAudio = function() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
-            alert("تم تفعيل التنبيهات الصوتية بنجاح! ستسمع نغمة فور وصول أي طلب جديد.");
+            alert("تم تفعيل التنبيهات الصوتية بنجاح!");
         };
+
+        // دالة جلب Chat ID تلقائياً من داخل المتجر لتجنب أخطاء المتصفح
+        window.fetchMyChatId = async function() {
+            try {
+                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/getUpdates`);
+                const data = await res.json();
+                if (data.ok && data.result.length > 0) {
+                    const chatId = data.result[0].message.chat.id;
+                    alert("رقم الـ Chat ID الخاص بك هو: " + chatId + "\n\nقم بنسخه وأخبرني به لنقوم بربطه نهائياً!");
+                } else {
+                    alert("لم يتم العثور على تفاعلات! تأكد أنك أرسلت رسالة (/start أو مرحبا) لبوتك @ezwa_store_bot في تيليجرام أولاً ثم حاول مجدداً.");
+                }
+            } catch (e) {
+                alert("حدث خطأ في الاتصال: " + e.message);
+            }
+        };
+
+        // إرسال إشعار فوري إلى تيليجرام (حتى والشاشة مغلقة)
+        async function sendTelegramNotification(orderText) {
+            // قم بتغيير رقم XXXXXX بالرقم الذي سيظهر لك عند الضغط على زر استخراج Chat ID
+            const CHAT_ID = "ضع_رقم_الـ_Chat_ID_هنا"; 
+            if (CHAT_ID === "ضع_رقم_الـ_Chat_ID_هنا") return;
+
+            try {
+                const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(orderText)}`;
+                await fetch(url);
+            } catch (e) {
+                console.log("Telegram error: ", e);
+            }
+        }
 
         // تشغيل صوت تنبيه فاخر
         function playNotificationSound() {
@@ -48,7 +79,7 @@
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
                 oscillator.type = "sine";
-                oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime); // نغمة D5 فاخرة
+                oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime);
                 gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
                 oscillator.connect(gainNode);
@@ -67,13 +98,18 @@
                     ...orderData,
                     createdAt: new Date().toISOString()
                 });
-                console.log("تم حفظ الطلب في سحابة Firebase بنجاح!");
+                
+                // إرسال إشعار تيليجرام فوري
+                const msg = `🚨 طلب جديد في عِزوة!\n🧥 المنتج: ${orderData.product} (${orderData.size})\n🪑 الطاولة: ${orderData.table}\n💳 الدفع: ${orderData.paymentMethod}`;
+                sendTelegramNotification(msg);
+
+                console.log("تم حفظ الطلب وإرسال تنبيه تيليجرام بنجاح!");
             } catch (e) {
                 console.error("خطأ في حفظ الطلب: ", e);
             }
         };
 
-        // الاستماع الفوري والحي للتغييرات في قاعدة البيانات
+        // الاستماع الذكي للطلبات الجديدة
         let isFirstLoad = true;
         const q = query(collection(db, "orders"));
         onSnapshot(q, (querySnapshot) => {
@@ -94,7 +130,6 @@
                 `;
             });
 
-            // تحديث الحسابات والأرباح تلقائياً
             const unitPrice = 199;
             const costPerItem = 80;
             const totalRevenue = totalOrders * unitPrice;
@@ -120,11 +155,15 @@
                 document.getElementById('live-orders-container').innerHTML = ordersListHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد طلبات مسجلة حتى الآن.</p>';
             }
 
-            // إصدار تنبيه صوتي عند ورود طلب جديد حقيقي
-            if (!isFirstLoad && totalOrders > 0) {
-                playNotificationSound();
+            if (isFirstLoad) {
+                isFirstLoad = false;
+            } else {
+                querySnapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        playNotificationSound();
+                    }
+                });
             }
-            isFirstLoad = false;
         });
     </script>
 
@@ -139,29 +178,25 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-between p-4 selection:bg-amber-500 selection:text-black">
 
-    <!-- Header / Brand -->
     <header class="w-full max-w-md mx-auto text-center py-6">
         <h1 class="text-3xl font-black tracking-widest gold-gradient mb-1">عِزوة | EZWA</h1>
         <p id="page-subtitle" class="text-xs text-amber-200/70 tracking-wider">اكتشف الرياض — إصدار قصر المصمك</p>
         
-        <!-- Toggle Demo Bar -->
         <div class="flex justify-center gap-2 mt-4">
             <button onclick="switchView('table')" id="btn-table" class="px-3 py-1 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer">واجهة الشراء</button>
             <button onclick="switchView('wallet')" id="btn-wallet" class="px-3 py-1 text-xs rounded-lg bg-neutral-800 text-amber-300 border gold-border transition cursor-pointer">محفظة السفير</button>
         </div>
     </header>
 
-    <!-- Main Container -->
     <main class="w-full max-w-md mx-auto space-y-6 mb-10">
 
-        <!-- VIEW 1: TABLE SHOPPING VIEW -->
+        <!-- VIEW 1: TABLE SHOPPING -->
         <div id="view-table" class="space-y-6">
             <div class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-300 text-xs px-3 py-1 rounded-bl-xl border-l border-b border-amber-500/30 font-medium z-10">
                     طاولة رقم #04 (مقهى مختص)
                 </div>
                 
-                <!-- Unified Image Frame -->
                 <div class="w-full h-96 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
                     <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover object-center transition duration-500 cursor-pointer" onclick="openZoomModal()">
                     
@@ -181,7 +216,6 @@
                     <p class="text-xs text-neutral-400 mt-1">قطن ثقيل فاخر 380gsm مع شريحة NFC وتوثيق سحابي</p>
                 </div>
 
-                <!-- Pricing & Payment Options -->
                 <div class="space-y-3 mb-6">
                     <label class="flex items-center justify-between p-3.5 rounded-xl border gold-border bg-neutral-950/60 cursor-pointer hover:bg-amber-500/5 transition" onclick="toggleBankDetails(false)">
                         <div class="flex items-center space-x-3 space-x-reverse">
@@ -219,17 +253,14 @@
                         <span class="font-bold text-amber-300 text-base">199 ر.س</span>
                     </label>
 
-                    <!-- Bank Details Box -->
                     <div id="bank-details-box" class="hidden bg-neutral-900 p-4 rounded-xl border border-amber-500/30 text-xs space-y-2 mt-2">
                         <p class="font-bold text-amber-300 mb-1">بيانات الحساب البنكي الرسمي (عِزوة):</p>
                         <p class="text-neutral-300">البنك: <span class="font-semibold text-white">مصرف الراجحي</span></p>
-                        <p class="text-neutral-300">رقم الحساب: <span class="font-mono text-amber-200 select-all">448000010006086270480</span>[cite: 7]</p>
-                        <p class="text-neutral-300">رقم الآيبان: <span class="font-mono text-amber-200 select-all">SA6280000448608016270480</span>[cite: 7]</p>
-                        <p class="text-[10px] text-neutral-400 pt-1 border-t border-neutral-800">يرجى تحويل المبلغ وإبراز إيصال التحويل للباريستا لاستلام التيشيرت فوراً.</p>
+                        <p class="text-neutral-300">رقم الحساب: <span class="font-mono text-amber-200 select-all">448000010006086270480</span></p>
+                        <p class="text-neutral-300">رقم الآيبان: <span class="font-mono text-amber-200 select-all">SA6280000448608016270480</span></p>
                     </div>
                 </div>
 
-                <!-- Size Selector -->
                 <div class="mb-6">
                     <label class="block text-xs text-neutral-400 mb-2 font-medium">اختر المقاس:</label>
                     <div id="size-selector" class="grid grid-cols-4 gap-2 text-center">
@@ -246,7 +277,7 @@
             </div>
         </div>
 
-        <!-- VIEW 2: CUSTOMER AMBASSADOR WALLET -->
+        <!-- VIEW 2: WALLET -->
         <div id="view-wallet" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-5 border gold-border">
                 <div class="flex items-center space-x-3 space-x-reverse mb-3">
@@ -257,69 +288,17 @@
                     </div>
                 </div>
             </div>
-
-            <div class="glass rounded-3xl p-5 border gold-border">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center space-x-3 space-x-reverse">
-                        <span class="text-2xl">✍️</span>
-                        <div>
-                            <h4 class="font-bold text-sm text-amber-100">ذاكرة التيشيرت الحية</h4>
-                            <span class="text-[11px] text-neutral-400">سجل توقيعك ووقع مع أصدقائك</span>
-                        </div>
-                    </div>
-                    <button onclick="openMemoryCanvas()" class="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30 cursor-pointer">فتح الذاكرة</button>
-                </div>
-            </div>
-
-            <div class="glass rounded-3xl p-5 border gold-border">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-bold text-sm text-amber-200">محفظة السفير (EZWA Wallet)</h3>
-                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-500/30">صالح لمدة 7 أيام</span>
-                </div>
-                <div class="bg-neutral-900/90 rounded-2xl p-4 border border-neutral-800 flex items-center justify-between mb-3">
-                    <div>
-                        <span class="text-xs text-neutral-400 block mb-1">الرصيد المتاح للإهداء أو الخصم:</span>
-                        <span class="text-2xl font-black text-amber-400">30 ر.س</span>
-                    </div>
-                    <button onclick="shareGiftLink()" class="px-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold hover:bg-amber-500 hover:text-black transition border border-amber-500/30 cursor-pointer">
-                        أهدِ عزوتك (30 ر.س)
-                    </button>
-                </div>
-                <p class="text-[10px] text-neutral-400 text-center leading-relaxed">تتجدد الـ 30 ريالاً تلقائياً عند شراء صديقك (بحد أقصى 5 إحالات لكل إصدار).</p>
-            </div>
         </div>
 
-        <!-- VIEW 3: CAFE PARTNER DASHBOARD -->
+        <!-- VIEW 3: CAFE DASHBOARD -->
         <div id="view-cafe" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-5 border border-amber-500/40 bg-neutral-950">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-neutral-800">
-                    <div class="flex items-center space-x-2 space-x-reverse">
-                        <span class="text-xl">☕</span>
-                        <h3 class="font-bold text-sm text-amber-200">لوحة تحكم الشريك (المقهى)</h3>
-                    </div>
-                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-medium">مباشر ولحظي ⚡</span>
+                    <h3 class="font-bold text-sm text-amber-200">لوحة تحكم الشريك (المقهى)</h3>
                 </div>
-                
-                <!-- Audio Enable Button for Browser -->
-                <button onclick="enableAudio()" class="w-full mb-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/40 hover:bg-amber-500 hover:text-black transition cursor-pointer flex items-center justify-center gap-2">
-                    <span>🔊 اضغط هنا أولاً لتفعيل التنبيهات الصوتية</span>
+                <button onclick="enableAudio()" class="w-full mb-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/40 hover:bg-amber-500 hover:text-black transition cursor-pointer">
+                    🔊 تفعيل التنبيهات الصوتية
                 </button>
-
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div class="bg-neutral-900 p-3 rounded-2xl border border-neutral-800 text-center">
-                        <span class="text-[11px] text-neutral-400 block mb-1">إجمالي المبيعات (طاولاتك)</span>
-                        <span id="cafe-total-sales" class="text-lg font-black text-white">0 قطعة</span>
-                    </div>
-                    <div class="bg-neutral-900 p-3 rounded-2xl border border-neutral-800 text-center">
-                        <span class="text-[11px] text-neutral-400 block mb-1">عمولتك الصافية (10%)</span>
-                        <span id="cafe-net-commission" class="text-lg font-black text-amber-400">0 ر.س</span>
-                    </div>
-                </div>
-
-                <div class="bg-neutral-900/60 p-3 rounded-2xl border border-neutral-800 flex items-center justify-between text-xs">
-                    <span class="text-neutral-400">حافز الباريستا المترصد:</span>
-                    <span id="cafe-barista-tip" class="font-bold text-amber-200">0 ر.س</span>
-                </div>
             </div>
         </div>
 
@@ -327,49 +306,33 @@
         <div id="view-founder" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-5 border-2 gold-border bg-neutral-950">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-500/30">
-                    <div class="flex items-center space-x-2 space-x-reverse">
-                        <span class="text-xl">👑</span>
-                        <h3 class="font-bold text-sm text-amber-300">لوحة تحكم المؤسس (نبيل النمر)</h3>
-                    </div>
-                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full border gold-border font-medium">مباشر ولحظي ⚡</span>
+                    <h3 class="font-bold text-sm text-amber-300">لوحة تحكم المؤسس (نبيل النمر)</h3>
                 </div>
                 
-                <!-- Audio Enable Button for Browser -->
-                <button onclick="enableAudio()" class="w-full mb-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border gold-border hover:bg-amber-500 hover:text-black transition cursor-pointer flex items-center justify-center gap-2">
-                    <span>🔊 اضغط هنا أولاً لتفعيل التنبيهات الصوتية</span>
+                <button onclick="enableAudio()" class="w-full mb-2 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border gold-border hover:bg-amber-500 hover:text-black transition cursor-pointer">
+                    🔊 تفعيل التنبيهات الصوتية
+                </button>
+
+                <!-- زر استخراج Chat ID تلقائياً -->
+                <button onclick="fetchMyChatId()" class="w-full mb-4 py-2.5 rounded-xl bg-blue-500/20 text-blue-300 text-xs font-bold border border-blue-500/40 hover:bg-blue-500 hover:text-white transition cursor-pointer flex items-center justify-center gap-2">
+                    <span>🔍 اضغط هنا لاستخراج Chat ID تلقائياً</span>
                 </button>
 
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     <div class="bg-neutral-900 p-3 rounded-2xl border gold-border text-center">
-                        <span class="text-[11px] text-neutral-400 block mb-1">إجمالي الإيرادات الكلية</span>
+                        <span class="text-[11px] text-neutral-400 block mb-1">إجمالي الإيرادات</span>
                         <span id="founder-total-revenue" class="text-lg font-black text-amber-300">0 ر.س</span>
                     </div>
                     <div class="bg-neutral-900 p-3 rounded-2xl border gold-border text-center">
-                        <span class="text-[11px] text-neutral-400 block mb-1">صافي أرباحك الفعلية</span>
+                        <span class="text-[11px] text-neutral-400 block mb-1">صافي الأرباح</span>
                         <span id="founder-net-profit" class="text-lg font-black text-emerald-400">0 ر.س</span>
                     </div>
                 </div>
 
-                <div class="space-y-2 mb-4 text-xs">
-                    <div class="bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 flex justify-between items-center">
-                        <span class="text-neutral-400">تكلفة الإنتاج الإجمالية (80 ر.س):</span>
-                        <span id="founder-total-cost" class="font-bold text-white">0 ر.س</span>
-                    </div>
-                    <div class="bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 flex justify-between items-center">
-                        <span class="text-neutral-400">إجمالي العمولات + الحوافز:</span>
-                        <span id="founder-total-commissions" class="font-bold text-white">0 ر.س</span>
-                    </div>
-                    <div class="bg-neutral-900/80 p-3 rounded-xl border border-neutral-800 flex justify-between items-center">
-                        <span class="text-neutral-400">سفراء التأسيس المسجلون:</span>
-                        <span id="founder-orders-count" class="font-bold text-amber-300">0 / 20 عميلاً</span>
-                    </div>
-                </div>
-
-                <!-- Live Orders Section -->
                 <div class="mb-2">
-                    <h4 class="text-xs font-bold text-amber-200 mb-2">سجل الطلبات الحية الواردة:</h4>
+                    <h4 class="text-xs font-bold text-amber-200 mb-2">سجل الطلبات الحية:</h4>
                     <div id="live-orders-container" class="max-h-40 overflow-y-auto space-y-1">
-                        <p class="text-center text-neutral-500 text-xs">جاري مزامنة الطلبات الحية...</p>
+                        <p class="text-center text-neutral-500 text-xs">جاري المزامنة...</p>
                     </div>
                 </div>
             </div>
@@ -377,25 +340,14 @@
 
     </main>
 
-    <!-- Fullscreen Image Zoom Modal -->
-    <div id="zoomModal" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 hidden">
-        <button onclick="closeZoomModal()" class="absolute top-5 left-5 px-4 py-2 bg-neutral-900 text-amber-300 rounded-xl border gold-border text-sm font-bold cursor-pointer hover:bg-amber-500 hover:text-black transition">إغلاق ✕</button>
-        <img id="modal-img" src="" alt="معاينة مكبرة" class="max-w-full max-h-[85vh] object-contain rounded-xl border border-amber-500/40 shadow-2xl">
-    </div>
-
-    <!-- Footer -->
     <footer class="w-full max-w-md mx-auto text-center py-6 text-[10px] text-neutral-500 border-t border-neutral-900 space-y-4">
         <div class="flex justify-center gap-3">
-            <button onclick="accessCafeDashboard()" class="px-3 py-1.5 rounded-lg bg-neutral-900 text-neutral-400 border border-neutral-700 text-xs transition cursor-pointer hover:border-amber-500/50">☕ دخول المقهى</button>
-            <button onclick="accessFounderDashboard()" class="px-3 py-1.5 rounded-lg bg-neutral-900 text-amber-400 border border-amber-500/50 text-xs transition cursor-pointer hover:bg-amber-500/10">👑 لوحة المؤسس</button>
+            <button onclick="accessCafeDashboard()" class="px-3 py-1.5 rounded-lg bg-neutral-900 text-neutral-400 border border-neutral-700 text-xs cursor-pointer">☕ دخول المقهى</button>
+            <button onclick="accessFounderDashboard()" class="px-3 py-1.5 rounded-lg bg-neutral-900 text-amber-400 border border-amber-500/50 text-xs cursor-pointer">👑 لوحة المؤسس</button>
         </div>
-        <div>
-            إعداد وتطوير: نبيل النمر | عِزوة (EZWA) © 2026<br>
-            هاتف التواصل: +966502777884 | Riyadh, KSA
-        </div>
+        <div>عِزوة (EZWA) © 2026</div>
     </footer>
 
-    <!-- Script -->
     <script>
         let isFrontView = true;
         let selectedSize = 'M';
@@ -406,34 +358,18 @@
             document.getElementById('view-cafe').classList.add('hidden');
             document.getElementById('view-founder').classList.add('hidden');
 
-            const subtitle = document.getElementById('page-subtitle');
-
-            if (view === 'table') {
-                document.getElementById('view-table').classList.remove('hidden');
-                subtitle.innerText = "اكتشف الرياض — إصدار قصر المصمك";
-            } else if (view === 'wallet') {
-                document.getElementById('view-wallet').classList.remove('hidden');
-                subtitle.innerText = "الملف الشخصي ومحفظة السفير";
-            } else if (view === 'cafe') {
-                document.getElementById('view-cafe').classList.remove('hidden');
-                subtitle.innerText = "لوحة تحكم الشريك (المقهى)";
-            } else if (view === 'founder') {
-                document.getElementById('view-founder').classList.remove('hidden');
-                subtitle.innerText = "لوحة تحكم المؤسس (خاص وسري)";
-            }
+            if (view === 'table') document.getElementById('view-table').classList.remove('hidden');
+            else if (view === 'wallet') document.getElementById('view-wallet').classList.remove('hidden');
+            else if (view === 'cafe') document.getElementById('view-cafe').classList.remove('hidden');
+            else if (view === 'founder') document.getElementById('view-founder').classList.remove('hidden');
         }
 
         function toggleImageView() {
             const imgElement = document.getElementById('product-img');
             const btnText = document.getElementById('toggle-btn-text');
             isFrontView = !isFrontView;
-            if (isFrontView) {
-                imgElement.src = "masmak-back1.jpg";
-                btnText.innerText = "عرض الظهر والتصميم";
-            } else {
-                imgElement.src = "masmak-back.jpg";
-                btnText.innerText = "عرض الوجه الأمامي";
-            }
+            imgElement.src = isFrontView ? "masmak-back1.jpg" : "masmak-back.jpg";
+            btnText.innerText = isFrontView ? "عرض الظهر والتصميم" : "عرض الوجه الأمامي";
         }
 
         function selectSize(size, btn) {
@@ -448,43 +384,25 @@
 
         function toggleBankDetails(show) {
             const box = document.getElementById('bank-details-box');
-            if (show) { box.classList.remove('hidden'); } else { box.classList.add('hidden'); }
+            if (show) box.classList.remove('hidden'); else box.classList.add('hidden');
         }
 
-        function openZoomModal() {
-            const currentImgSrc = document.getElementById('product-img').src;
-            document.getElementById('modal-img').src = currentImgSrc;
-            document.getElementById('zoomModal').classList.remove('hidden');
-        }
-
-        function closeZoomModal() {
-            document.getElementById('zoomModal').classList.add('hidden');
-        }
+        function openZoomModal() { alert('تكبير الصورة'); }
 
         function accessCafeDashboard() {
-            let pin = prompt("أدخل الرقم السري الخاص بمالك المقهى:");
-            if (pin === "7778") {
-                switchView('cafe');
-                alert("مرحباً بك يا شريكنا، تم فتح لوحة مبيعات المقهى اللحظية.");
-            } else if (pin !== null) {
-                alert("الرقم السري غير صحيح!");
-            }
+            let pin = prompt("الرقم السري للمقهى:");
+            if (pin === "7778") switchView('cafe'); else if (pin !== null) alert("خطأ!");
         }
 
         function accessFounderDashboard() {
-            let pin = prompt("أدخل الرقم السري الخاص بالمؤسس:");
-            if (pin === "1984") {
-                switchView('founder');
-                alert("أهلاً بك يا مؤسس البراند (نبيل النمر)، تم فتح اللوحة الإدارية المباشرة.");
-            } else if (pin !== null) {
-                alert("الرقم السري غير صحيح!");
-            }
+            let pin = prompt("الرقم السري للمؤسس:");
+            if (pin === "1984") switchView('founder'); else if (pin !== null) alert("خطأ!");
         }
 
         async function processCheckout() {
             let paymentMethod = "Apple Pay / شبكة";
             if (document.getElementById('opt-bundle').checked) paymentMethod = "عرض الصديقين";
-            if (document.getElementById('opt-bank').checked) paymentMethod = "التحويل البنكي (الراجحي)";
+            if (document.getElementById('opt-bank').checked) paymentMethod = "التحويل البنكي";
 
             const orderData = {
                 product: "تيشيرت قصر المصمك",
@@ -494,20 +412,8 @@
                 status: "مؤكد - بانتظار الاستلام"
             };
 
-            if (window.saveOrderToCloud) {
-                await window.saveOrderToCloud(orderData);
-            }
-
-            alert("تم إتمام الطلب بنجاح وحفظه في السحابة! تفضل بطلب كوب القهوة المختصة المجاني، وإبراز إيصال التحويل للباريستا لاستلام تيشرتك المغلف.");
-        }
-
-        function openMemoryCanvas() {
-            alert("جارٍ فتح لوحة التوقيع الرقمي (ذاكرة التيشيرت الحية).. يمكنك الآن كتابة توقيعك وحفظه على السحابة.");
-        }
-
-        function shareGiftLink() {
-            navigator.clipboard.writeText("https://ezwa-store.com/gift?ref=Nabeel");
-            alert("تم نسخ رابط الهدية (30 ر.س) بنجاح! أرسله لصديقك عبر الواتساب ليحصل على خصم فوري على إصدار قصر المصمك.");
+            if (window.saveOrderToCloud) await window.saveOrderToCloud(orderData);
+            alert("تم إتمام الطلب بنجاح!");
         }
     </script>
 </body>
