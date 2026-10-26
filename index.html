@@ -7,10 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
-    <!-- Firebase SDKs via CDN -->
+    <!-- Firebase SDKs via CDN with Real-time Listener -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCBcWfYs1iAbKMWFhLaSy8puN-g_N43wxc",
@@ -25,6 +25,25 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // تشغيل صوت تنبيه خفيف عند ورود طلب جديد
+        function playNotificationSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = "sine";
+                oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime); // نغمة D5 فاخرة
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {
+                console.log("Audio not supported or blocked");
+            }
+        }
+
         // حفظ الطلب سحابياً
         window.saveOrderToCloud = async function(orderData) {
             try {
@@ -38,56 +57,62 @@
             }
         };
 
-        // جلب الإحصائيات الحية للوحة المؤسس والمقهى
-        window.fetchCloudStats = async function() {
-            try {
-                const q = query(collection(db, "orders"));
-                const querySnapshot = await getDocs(q);
-                let totalOrders = 0;
-                let ordersListHtml = "";
+        // الاستماع الفوري والحي للتغييرات في قاعدة البيانات (Real-time Listener)
+        let isFirstLoad = true;
+        const q = query(collection(db, "orders"));
+        onSnapshot(q, (querySnapshot) => {
+            let totalOrders = 0;
+            let ordersListHtml = "";
 
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    totalOrders++;
-                    ordersListHtml += `
-                        <div class="bg-neutral-900 p-3 rounded-xl border border-neutral-800 flex justify-between items-center text-xs mb-2">
-                            <div>
-                                <span class="font-bold text-amber-300 block">${data.product} (${data.size})</span>
-                                <span class="text-[10px] text-neutral-400">الطاولة: ${data.table} | الدفع: ${data.paymentMethod}</span>
-                            </div>
-                            <span class="text-emerald-400 font-medium text-[11px]">${data.status}</span>
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                totalOrders++;
+                ordersListHtml += `
+                    <div class="bg-neutral-900 p-3 rounded-xl border border-neutral-800 flex justify-between items-center text-xs mb-2">
+                        <div>
+                            <span class="font-bold text-amber-300 block">${data.product} (${data.size})</span>
+                            <span class="text-[10px] text-neutral-400">الطاولة: ${data.table} | الدفع: ${data.paymentMethod}</span>
                         </div>
-                    `;
-                });
+                        <span class="text-emerald-400 font-medium text-[11px]">${data.status}</span>
+                    </div>
+                `;
+            });
 
-                // تحديث واجهة لوحة المؤسس
-                const unitPrice = 199;
-                const costPerItem = 80;
-                const totalRevenue = totalOrders * unitPrice;
-                const totalCost = totalOrders * costPerItem;
-                const totalCafeCommission = totalOrders * (19.9 + 10); // 10% commission + 10 sar barista tip
-                const netProfit = totalRevenue - totalCost - totalCafeCommission;
+            // تحديث الحسابات والأرباح تلقائياً
+            const unitPrice = 199;
+            const costPerItem = 80;
+            const totalRevenue = totalOrders * unitPrice;
+            const totalCost = totalOrders * costPerItem;
+            const totalCafeCommission = totalOrders * (19.9 + 10); 
+            const netProfit = totalRevenue - totalCost - totalCafeCommission;
 
+            // تحديث واجهة لوحة المؤسس
+            if(document.getElementById('founder-total-revenue')) {
                 document.getElementById('founder-total-revenue').innerText = totalRevenue + " ر.س";
                 document.getElementById('founder-net-profit').innerText = netProfit.toFixed(1) + " ر.س";
                 document.getElementById('founder-total-cost').innerText = totalCost + " ر.س (" + totalOrders + " قطعة)";
                 document.getElementById('founder-total-commissions').innerText = totalCafeCommission.toFixed(1) + " ر.س";
                 document.getElementById('founder-orders-count').innerText = totalOrders + " / 20 عميلاً";
+            }
 
-                // تحديث واجهة لوحة المقهى
+            // تحديث واجهة لوحة المقهى
+            if(document.getElementById('cafe-total-sales')) {
                 document.getElementById('cafe-total-sales').innerText = totalOrders + " قطعة";
                 document.getElementById('cafe-net-commission').innerText = (totalOrders * 19.9).toFixed(1) + " ر.س";
                 document.getElementById('cafe-barista-tip').innerText = (totalOrders * 10) + " ر.س";
-
-                // عرض قائمة الطلبات الحية
-                if (document.getElementById('live-orders-container')) {
-                    document.getElementById('live-orders-container').innerHTML = ordersListHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد طلبات مسجلة حتى الآن.</p>';
-                }
-
-            } catch (e) {
-                console.error("خطأ في جلب البيانات: ", e);
             }
-        };
+
+            // تحديث قائمة الطلبات
+            if (document.getElementById('live-orders-container')) {
+                document.getElementById('live-orders-container').innerHTML = ordersListHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد طلبات مسجلة حتى الآن.</p>';
+            }
+
+            // إصدار تنبيه صوتي عند ورود طلب جديد حقيقي (بعد التحميل الأول)
+            if (!isFirstLoad && totalOrders > 0) {
+                playNotificationSound();
+            }
+            isFirstLoad = false;
+        });
     </script>
 
     <style>
@@ -261,7 +286,7 @@
                         <span class="text-xl">☕</span>
                         <h3 class="font-bold text-sm text-amber-200">لوحة تحكم الشريك (حساب المقهى)</h3>
                     </div>
-                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-medium">مباشر من السحابة</span>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-medium">مباشر ولحظي ⚡</span>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3 mb-4">
@@ -280,9 +305,7 @@
                     <span id="cafe-barista-tip" class="font-bold text-amber-200">0 ر.س</span>
                 </div>
 
-                <button onclick="fetchCloudStats(); alert('تم تحديث البيانات الحية من السحابة بنجاح!')" class="w-full py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-amber-300 text-xs font-bold transition border gold-border cursor-pointer">
-                    تحديث البيانات الحية 🔄
-                </button>
+                <p class="text-[10px] text-neutral-400 text-center">تتحدث هذه اللوحة تلقائياً فور ورود أي طلب جديد من طاولات المقهى.</p>
             </div>
         </div>
 
@@ -294,7 +317,7 @@
                         <span class="text-xl">👑</span>
                         <h3 class="font-bold text-sm text-amber-300">لوحة تحكم المؤسس (نبيل النمر)</h3>
                     </div>
-                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full border gold-border font-medium">مباشر من السحابة</span>
+                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full border gold-border font-medium">مباشر ولحظي ⚡</span>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3 mb-4">
@@ -324,16 +347,12 @@
                 </div>
 
                 <!-- Live Orders Section -->
-                <div class="mb-4">
+                <div class="mb-2">
                     <h4 class="text-xs font-bold text-amber-200 mb-2">سجل الطلبات الحية الواردة:</h4>
                     <div id="live-orders-container" class="max-h-40 overflow-y-auto space-y-1">
-                        <p class="text-center text-neutral-500 text-xs">جاري تحميل الطلبات...</p>
+                        <p class="text-center text-neutral-500 text-xs">جاري مزامنة الطلبات الحية...</p>
                     </div>
                 </div>
-
-                <button onclick="fetchCloudStats(); alert('تم تحديث إحصائيات المؤسس والمخزون من السحابة بنجاح!')" class="w-full py-3 rounded-xl gold-btn text-xs font-bold transition shadow-lg cursor-pointer">
-                    تحديث مزامنة سحابة NFC والمخزون 🔄
-                </button>
             </div>
         </div>
 
@@ -438,8 +457,7 @@
             let pin = prompt("أدخل الرقم السري الخاص بمالك المقهى:");
             if (pin === "7778") {
                 switchView('cafe');
-                if (window.fetchCloudStats) window.fetchCloudStats();
-                alert("مرحباً بك يا شريكنا، تم فتح لوحة مبيعات المقهى وجلب البيانات بنجاح.");
+                alert("مرحباً بك يا شريكنا، تم فتح لوحة مبيعات المقهى اللحظية.");
             } else if (pin !== null) {
                 alert("الرقم السري غير صحيح!");
             }
@@ -450,8 +468,7 @@
             let pin = prompt("أدخل الرقم السري الخاص بالمؤسس:");
             if (pin === "1984") {
                 switchView('founder');
-                if (window.fetchCloudStats) window.fetchCloudStats();
-                alert("أهلاً بك يا مؤسس البراند (نبيل النمر)، تم فتح اللوحة الإدارية وجلب المبيعات الحية.");
+                alert("أهلاً بك يا مؤسس البراند (نبيل النمر)، تم فتح اللوحة الإدارية المباشرة.");
             } else if (pin !== null) {
                 alert("الرقم السري غير صحيح!");
             }
@@ -475,7 +492,7 @@
                 await window.saveOrderToCloud(orderData);
             }
 
-            alert("تم إتمام الطلب بنجاح وحفظه في السحابة! تفضل بطلب كوب القهوة المختصة المجاني، وإبراز إيصال التحويل للباريستا لتسلم تيشرتك المغلف.");
+            alert("تم إتمام الطلب بنجاح وحفظه في السحابة! تفضل بطلب كوب القهوة المختصة المجاني، وإبراز إيصال التحويل للباريستا لاستلام تيشرتك المغلف.");
         }
 
         function openMemoryCanvas() {
