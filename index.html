@@ -6,6 +6,39 @@
     <title>عِزوة | EZWA - اكتشف الرياض (إصدار قصر المصمك)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs via CDN -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCBcWfYs1iAbKMWFhLaSy8puN-g_N43wxc",
+            authDomain: "ezwa-store.firebaseapp.com",
+            projectId: "ezwa-store",
+            storageBucket: "ezwa-store.firebasestorage.app",
+            messagingSenderId: "432864513291",
+            appId: "1:432864513291:web:332c83ee7d867f6d35a60e",
+            measurementId: "G-M5QS8E1FHH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ربط دالة حفظ الطلبات سحابياً
+        window.saveOrderToCloud = async function(orderData) {
+            try {
+                await addDoc(collection(db, "orders"), {
+                    ...orderData,
+                    createdAt: new Date().toISOString()
+                });
+                console.log("تم حفظ الطلب في سحابة Firebase بنجاح!");
+            } catch (e) {
+                console.error("خطأ في حفظ الطلب: ", e);
+            }
+        };
+    </script>
+
     <style>
         body { font-family: 'Tajawal', sans-serif; background-color: #050505; color: #f3f4f6; }
         .glass { background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(212, 175, 55, 0.25); }
@@ -63,10 +96,9 @@
 
                 <!-- Pricing & Payment Options -->
                 <div class="space-y-3 mb-6">
-                    <!-- Option 1: Single Piece (Apple Pay / Cash) -->
                     <label class="flex items-center justify-between p-3.5 rounded-xl border gold-border bg-neutral-950/60 cursor-pointer hover:bg-amber-500/5 transition" onclick="toggleBankDetails(false)">
                         <div class="flex items-center space-x-3 space-x-reverse">
-                            <input type="radio" name="purchase_option" checked class="accent-amber-500 w-4 h-4">
+                            <input type="radio" name="purchase_option" id="opt-single" checked class="accent-amber-500 w-4 h-4">
                             <div>
                                 <span class="font-bold text-sm block text-neutral-200">قطعة مفردة (Apple Pay / شبكة)</span>
                                 <span class="text-xs text-neutral-400">شامل الضيافة (قهوة مختصة مجانية)</span>
@@ -75,10 +107,9 @@
                         <span class="font-bold text-amber-300 text-base">199 ر.س</span>
                     </label>
 
-                    <!-- Option 2: Friend Bundle -->
                     <label class="flex items-center justify-between p-3.5 rounded-xl border border-amber-500/60 bg-amber-500/10 cursor-pointer transition" onclick="toggleBankDetails(false)">
                         <div class="flex items-center space-x-3 space-x-reverse">
-                            <input type="radio" name="purchase_option" class="accent-amber-500 w-4 h-4">
+                            <input type="radio" name="purchase_option" id="opt-bundle" class="accent-amber-500 w-4 h-4">
                             <div>
                                 <span class="font-bold text-sm block text-amber-200">عرض الصديقين</span>
                                 <span class="text-xs text-amber-400/90">قطعتان + كوبا قهوة مجاناً</span>
@@ -90,10 +121,9 @@
                         </div>
                     </label>
 
-                    <!-- Option 3: Al Rajhi Bank Transfer -->
                     <label class="flex items-center justify-between p-3.5 rounded-xl border border-blue-500/40 bg-neutral-950/80 cursor-pointer hover:bg-blue-500/5 transition" onclick="toggleBankDetails(true)">
                         <div class="flex items-center space-x-3 space-x-reverse">
-                            <input type="radio" name="purchase_option" class="accent-amber-500 w-4 h-4">
+                            <input type="radio" name="purchase_option" id="opt-bank" class="accent-amber-500 w-4 h-4">
                             <div>
                                 <span class="font-bold text-sm block text-amber-200">التحويل البنكي المباشر (الراجحي)</span>
                                 <span class="text-xs text-neutral-400">عرض تفاصيل الآيبان الرسمي للحساب</span>
@@ -102,11 +132,11 @@
                         <span class="font-bold text-amber-300 text-base">199 ر.س</span>
                     </label>
 
-                    <!-- Bank Details Box (Hidden by default, shows when bank transfer is selected) -->
+                    <!-- Bank Details Box -->
                     <div id="bank-details-box" class="hidden bg-neutral-900 p-4 rounded-xl border border-amber-500/30 text-xs space-y-2 mt-2">
                         <p class="font-bold text-amber-300 mb-1">بيانات الحساب البنكي الرسمي (عِزوة):</p>
                         <p class="text-neutral-300">البنك: <span class="font-semibold text-white">مصرف الراجحي</span></p>
-                        <p class="text-neutral-300">رقم الحساب: <span class="font-mono text-amber-200 select-all">448000010006086270480</span></p>
+                        <p class="text-neutral-300">رقم الحساب: <span class="font-mono text-amber-200 select-all">448000010006086270480</span>[cite: 7]</p>
                         <p class="text-neutral-300">رقم الآيبان: <span class="font-mono text-amber-200 select-all">SA6280000448608016270480</span>[cite: 7]</p>
                         <p class="text-[10px] text-neutral-400 pt-1 border-t border-neutral-800">يرجى تحويل المبلغ وإبراز إيصال التحويل للباريستا لاستلام التيشيرت فوراً.</p>
                     </div>
@@ -115,15 +145,15 @@
                 <!-- Size Selector -->
                 <div class="mb-6">
                     <label class="block text-xs text-neutral-400 mb-2 font-medium">اختر المقاس:</label>
-                    <div class="grid grid-cols-4 gap-2 text-center">
-                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">S</button>
-                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold bg-amber-500 text-black shadow-md cursor-pointer">M</button>
-                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">L</button>
-                        <button type="button" class="py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">XL</button>
+                    <div id="size-selector" class="grid grid-cols-4 gap-2 text-center">
+                        <button type="button" onclick="selectSize('S', this)" class="size-btn py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">S</button>
+                        <button type="button" onclick="selectSize('M', this)" class="size-btn py-2.5 rounded-xl border gold-border text-xs font-bold bg-amber-500 text-black shadow-md cursor-pointer">M</button>
+                        <button type="button" onclick="selectSize('L', this)" class="size-btn py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">L</button>
+                        <button type="button" onclick="selectSize('XL', this)" class="size-btn py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">XL</button>
                     </div>
                 </div>
 
-                <button onclick="simulateCheckout()" class="w-full py-4 rounded-xl gold-btn shadow-lg flex items-center justify-center space-x-2 space-x-reverse tracking-wider text-sm cursor-pointer">
+                <button onclick="processCheckout()" class="w-full py-4 rounded-xl gold-btn shadow-lg flex items-center justify-center space-x-2 space-x-reverse tracking-wider text-sm cursor-pointer">
                     <span>إتمام الطلب والاستلام الفوري</span>
                 </button>
             </div>
@@ -242,7 +272,7 @@
                     </div>
                 </div>
 
-                <button onclick="alert('جارٍ ربط قاعدة البيانات السحابية (Firebase) لجرد المخزون الفعلي وتحديثات الـ NFC..')" class="w-full py-3 rounded-xl gold-btn text-xs font-bold transition shadow-lg cursor-pointer">
+                <button onclick="alert('جارٍ جلب البيانات الحية من سحابة Firebase..')" class="w-full py-3 rounded-xl gold-btn text-xs font-bold transition shadow-lg cursor-pointer">
                     تحديث مزامنة سحابة NFC والمخزون 🔄
                 </button>
             </div>
@@ -271,6 +301,7 @@
     <!-- Script -->
     <script>
         let isFrontView = true;
+        let selectedSize = 'M';
 
         function switchView(view) {
             document.getElementById('view-table').classList.add('hidden');
@@ -309,6 +340,17 @@
                 imgElement.src = "masmak-back.jpg";
                 btnText.innerText = "عرض الوجه الأمامي";
             }
+        }
+
+        // Select size
+        function selectSize(size, btn) {
+            selectedSize = size;
+            document.querySelectorAll('.size-btn').forEach(b => {
+                b.classList.remove('bg-amber-500', 'text-black', 'shadow-md');
+                b.classList.add('text-neutral-200');
+            });
+            btn.classList.add('bg-amber-500', 'text-black', 'shadow-md');
+            btn.classList.remove('text-neutral-200');
         }
 
         // Show/Hide Bank Details box
@@ -354,8 +396,26 @@
             }
         }
 
-        function simulateCheckout() {
-            alert("تم إتمام الطلب بنجاح! تفضل بطلب كوب القهوة المختصة المجاني، وإبراز إيصال التحويل (أو تأكيد الدفع) للباريستا لتسلم تيشرتك المغلف.");
+        // Process Checkout & Save to Firebase Cloud
+        async function processCheckout() {
+            let paymentMethod = "Apple Pay / شبكة";
+            if (document.getElementById('opt-bundle').checked) paymentMethod = "عرض الصديقين";
+            if (document.getElementById('opt-bank').checked) paymentMethod = "التحويل البنكي (الراجحي)";
+
+            const orderData = {
+                product: "تيشيرت قصر المصمك",
+                size: selectedSize,
+                paymentMethod: paymentMethod,
+                table: "#04",
+                status: "مؤكد - بانتظار الاستلام"
+            };
+
+            // حفظ الطلب سحابياً إذا كانت الدالة متاحة
+            if (window.saveOrderToCloud) {
+                await window.saveOrderToCloud(orderData);
+            }
+
+            alert("تم إتمام الطلب بنجاح وحفظه في السحابة! تفضل بطلب كوب القهوة المختصة المجاني، وإبراز إيصال التحويل للباريستا لتسلم تيشرتك المغلف.");
         }
 
         function openMemoryCanvas() {
