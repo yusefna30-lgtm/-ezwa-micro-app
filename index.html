@@ -17,12 +17,12 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-between p-4 selection:bg-amber-500 selection:text-black">
 
-    <!-- Header / Brand (نظيف للعميل تماماً) -->
+    <!-- Header / Brand -->
     <header class="w-full max-w-md mx-auto text-center py-6">
         <h1 class="text-3xl font-black tracking-widest gold-gradient mb-1">عِزوة | EZWA</h1>
         <p id="page-subtitle" class="text-xs text-amber-200/70 tracking-wider">اكتشف الرياض — إصدار قصر المصمك</p>
         
-        <!-- زر التبديل السريع التجريبي للعميل (الطاولة / محفظة السفير) -->
+        <!-- Toggle Demo Bar -->
         <div class="flex justify-center gap-2 mt-4">
             <button onclick="switchView('table')" id="btn-table" class="px-3 py-1 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer">واجهة الشراء</button>
             <button onclick="switchView('wallet')" id="btn-wallet" class="px-3 py-1 text-xs rounded-lg bg-neutral-800 text-amber-300 border gold-border transition cursor-pointer">محفظة السفير</button>
@@ -61,24 +61,26 @@
                     <p class="text-xs text-neutral-400 mt-1">قطن ثقيل فاخر 380gsm مع شريحة NFC وتوثيق سحابي</p>
                 </div>
 
-                <!-- Pricing Options -->
+                <!-- Pricing & Payment Options -->
                 <div class="space-y-3 mb-6">
-                    <label class="flex items-center justify-between p-3.5 rounded-xl border gold-border bg-neutral-950/60 cursor-pointer hover:bg-amber-500/5 transition">
+                    <!-- Option 1: Single Piece (Apple Pay / Cash) -->
+                    <label class="flex items-center justify-between p-3.5 rounded-xl border gold-border bg-neutral-950/60 cursor-pointer hover:bg-amber-500/5 transition" onclick="toggleBankDetails(false)">
                         <div class="flex items-center space-x-3 space-x-reverse">
                             <input type="radio" name="purchase_option" checked class="accent-amber-500 w-4 h-4">
                             <div>
-                                <span class="font-bold text-sm block text-neutral-200">قطعة مفردة</span>
+                                <span class="font-bold text-sm block text-neutral-200">قطعة مفردة (Apple Pay / شبكة)</span>
                                 <span class="text-xs text-neutral-400">شامل الضيافة (قهوة مختصة مجانية)</span>
                             </div>
                         </div>
                         <span class="font-bold text-amber-300 text-base">199 ر.س</span>
                     </label>
 
-                    <label class="flex items-center justify-between p-3.5 rounded-xl border border-amber-500/60 bg-amber-500/10 cursor-pointer transition">
+                    <!-- Option 2: Friend Bundle -->
+                    <label class="flex items-center justify-between p-3.5 rounded-xl border border-amber-500/60 bg-amber-500/10 cursor-pointer transition" onclick="toggleBankDetails(false)">
                         <div class="flex items-center space-x-3 space-x-reverse">
                             <input type="radio" name="purchase_option" class="accent-amber-500 w-4 h-4">
                             <div>
-                                <span class="font-bold text-sm block text-amber-200">عرض الصديقين (خلال 3 دقائق)</span>
+                                <span class="font-bold text-sm block text-amber-200">عرض الصديقين</span>
                                 <span class="text-xs text-amber-400/90">قطعتان + كوبا قهوة مجاناً</span>
                             </div>
                         </div>
@@ -87,6 +89,27 @@
                             <span class="text-[10px] text-neutral-400 line-through">398 ر.س</span>
                         </div>
                     </label>
+
+                    <!-- Option 3: Al Rajhi Bank Transfer -->
+                    <label class="flex items-center justify-between p-3.5 rounded-xl border border-blue-500/40 bg-neutral-950/80 cursor-pointer hover:bg-blue-500/5 transition" onclick="toggleBankDetails(true)">
+                        <div class="flex items-center space-x-3 space-x-reverse">
+                            <input type="radio" name="purchase_option" class="accent-amber-500 w-4 h-4">
+                            <div>
+                                <span class="font-bold text-sm block text-amber-200">التحويل البنكي المباشر (الراجحي)</span>
+                                <span class="text-xs text-neutral-400">عرض تفاصيل الآيبان الرسمي للحساب</span>
+                            </div>
+                        </div>
+                        <span class="font-bold text-amber-300 text-base">199 ر.س</span>
+                    </label>
+
+                    <!-- Bank Details Box (Hidden by default, shows when bank transfer is selected) -->
+                    <div id="bank-details-box" class="hidden bg-neutral-900 p-4 rounded-xl border border-amber-500/30 text-xs space-y-2 mt-2">
+                        <p class="font-bold text-amber-300 mb-1">بيانات الحساب البنكي الرسمي (عِزوة):</p>
+                        <p class="text-neutral-300">البنك: <span class="font-semibold text-white">مصرف الراجحي</span></p>
+                        <p class="text-neutral-300">رقم الحساب: <span class="font-mono text-amber-200 select-all">448000010006086270480</span></p>
+                        <p class="text-neutral-300">رقم الآيبان: <span class="font-mono text-amber-200 select-all">SA6280000448608016270480</span>[cite: 7]</p>
+                        <p class="text-[10px] text-neutral-400 pt-1 border-t border-neutral-800">يرجى تحويل المبلغ وإبراز إيصال التحويل للباريستا لاستلام التيشيرت فوراً.</p>
+                    </div>
                 </div>
 
                 <!-- Size Selector -->
@@ -101,7 +124,7 @@
                 </div>
 
                 <button onclick="simulateCheckout()" class="w-full py-4 rounded-xl gold-btn shadow-lg flex items-center justify-center space-x-2 space-x-reverse tracking-wider text-sm cursor-pointer">
-                    <span> Pay — الدفع السريع والاستلام الفوري</span>
+                    <span>إتمام الطلب والاستلام الفوري</span>
                 </button>
             </div>
         </div>
@@ -233,7 +256,7 @@
         <img id="modal-img" src="" alt="معاينة مكبرة" class="max-w-full max-h-[85vh] object-contain rounded-xl border border-amber-500/40 shadow-2xl">
     </div>
 
-    <!-- Footer (تم وضع أزرار دخول المقهى ولوحة المؤسس هنا بشكل فاخر وسري) -->
+    <!-- Footer -->
     <footer class="w-full max-w-md mx-auto text-center py-6 text-[10px] text-neutral-500 border-t border-neutral-900 space-y-4">
         <div class="flex justify-center gap-3">
             <button onclick="accessCafeDashboard()" class="px-3 py-1.5 rounded-lg bg-neutral-900 text-neutral-400 border border-neutral-700 text-xs transition cursor-pointer hover:border-amber-500/50">☕ دخول المقهى</button>
@@ -288,6 +311,16 @@
             }
         }
 
+        // Show/Hide Bank Details box
+        function toggleBankDetails(show) {
+            const box = document.getElementById('bank-details-box');
+            if (show) {
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+            }
+        }
+
         // Zoom Modal Functions
         function openZoomModal() {
             const currentImgSrc = document.getElementById('product-img').src;
@@ -322,7 +355,7 @@
         }
 
         function simulateCheckout() {
-            alert("تم إتمام عملية الدفع بنجاح عبر Apple Pay! تفضل بطلب كوب القهوة المختصة المجاني، وإبراز قسيمة الاستلام للباريستا لتسلم تيشرتك المغلف.");
+            alert("تم إتمام الطلب بنجاح! تفضل بطلب كوب القهوة المختصة المجاني، وإبراز إيصال التحويل (أو تأكيد الدفع) للباريستا لتسلم تيشرتك المغلف.");
         }
 
         function openMemoryCanvas() {
