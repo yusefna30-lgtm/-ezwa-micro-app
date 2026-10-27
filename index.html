@@ -75,6 +75,7 @@
             }
         };
 
+        // الاستماع للطلبات
         const q = query(collection(db, "orders"));
         onSnapshot(q, (querySnapshot) => {
             let totalOrders = 0;
@@ -108,6 +109,32 @@
 
             if (document.getElementById('live-orders-container')) {
                 document.getElementById('live-orders-container').innerHTML = ordersListHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد طلبات مسجلة حتى الآن.</p>';
+            }
+        });
+
+        // الاستماع لتوقيعات دفتر الزوار الحية
+        const sigQuery = query(collection(db, "signatures"));
+        onSnapshot(sigQuery, (snapshot) => {
+            let sigsHtml = "";
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                sigsHtml += `
+                    <div class="bg-neutral-950 p-3 rounded-xl border border-neutral-800 space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-amber-200">${data.name}</span>
+                            <span class="text-[10px] text-neutral-500">${new Date(data.createdAt).toLocaleDateString('ar-SA')}</span>
+                        </div>
+                        <p class="text-[11px] text-neutral-300 italic">"${data.note}"</p>
+                        <div class="bg-neutral-900/80 p-2 rounded-lg border border-neutral-800 flex justify-center">
+                            <img src="${data.signature}" alt="توقيع" class="h-14 object-contain filter invert brightness-200">
+                        </div>
+                    </div>
+                `;
+            });
+
+            const container = document.getElementById('signatures-list');
+            if(container) {
+                container.innerHTML = sigsHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد بصمات مسجلة بعد. كن أول من يوقع!</p>';
             }
         });
     </script>
@@ -215,7 +242,7 @@
             </div>
         </div>
 
-        <!-- 2. محفظة العميل ومتحف النخبة -->
+        <!-- 2. محفظة العميل ومتحف دفتر الزوار والتوقيع الحقيقي -->
         <div id="view-wallet" class="space-y-6">
             <div class="glass rounded-3xl p-6 border gold-border space-y-5">
                 <div class="flex items-center space-x-3 space-x-reverse pb-3 border-b border-amber-500/20">
@@ -242,51 +269,46 @@
                     </div>
                 </div>
 
-                <!-- متحف عِزوة الرقمي (سجل المشاهير وشخصيات النخبة) -->
-                <div class="bg-neutral-900/60 p-4 rounded-2xl border gold-border space-y-3">
+                <!-- دفتر زوار التيشيرت (التوقيع الحقيقي) -->
+                <div class="bg-neutral-900/60 p-4 rounded-2xl border gold-border space-y-4">
                     <div class="flex items-center justify-between pb-2 border-b border-neutral-800">
                         <h5 class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                            <span>🏛️</span>
-                            <span>متحف عِزوة الرقمي (سجل النخبة)</span>
+                            <span>✒️</span>
+                            <span>دفتر زوار التيشيرت (سجل النخبة)</span>
                         </h5>
-                        <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">سجل الشرف</span>
+                        <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">توقيع حي</span>
                     </div>
                     
                     <p class="text-[11px] text-neutral-400 leading-relaxed">
-                        سجل حصري يوثق أسماء وتوقيعات أبرز الشخصيات والمشاهير الذين اقتنوا إصدار "قصر المصمك":
+                        اترك أثرك وتوقيعك الحقيقي بإصبعك في ذاكرة هذا التيشيرت ليبقى مخلداً في السجل الرقمي:
                     </p>
 
-                    <!-- قائمة الشخصيات في المتحف -->
-                    <div class="space-y-2.5 pt-1">
-                        <div class="bg-neutral-950 p-3 rounded-xl border border-neutral-800 flex items-center justify-between">
-                            <div>
-                                <span class="font-bold text-xs text-amber-200 block">سمو الأمير / تركي بن فيصل</span>
-                                <span class="text-[10px] text-neutral-400">قطعة رقم #001 — إطلاق الدرعية</span>
+                    <div class="space-y-3">
+                        <input type="text" id="guest-name" placeholder="اسمك الكريم أو لقبك..." class="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-xs text-neutral-200 focus:border-amber-500 outline-none">
+                        
+                        <textarea id="guest-note" placeholder="كلمة تذكارية أو إهداء قصير..." class="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-xs text-neutral-200 focus:border-amber-500 outline-none resize-none h-16"></textarea>
+                        
+                        <div>
+                            <label class="block text-[11px] text-neutral-400 mb-1.5">ارسم توقيعك أو بصمتك هنا بإصبعك:</label>
+                            <div class="relative border border-amber-500/40 rounded-xl bg-neutral-950 overflow-hidden">
+                                <canvas id="signature-pad" class="w-full h-36 touch-none cursor-crosshair"></canvas>
+                                <button type="button" onclick="clearSignature()" class="absolute top-2 left-2 text-[10px] text-amber-400 bg-neutral-900/90 px-2.5 py-1 rounded-md border border-neutral-800 cursor-pointer">مسح وإعادة</button>
                             </div>
-                            <span class="font-serif italic text-amber-400 text-sm">Turki F.</span>
                         </div>
 
-                        <div class="bg-neutral-950 p-3 rounded-xl border border-neutral-800 flex items-center justify-between">
-                            <div>
-                                <span class="font-bold text-xs text-amber-200 block">عبدالرحمن الفهد (خبير صناعة المحتوى)</span>
-                                <span class="text-[10px] text-neutral-400">قطعة رقم #005 — إصدار الرياض</span>
-                            </div>
-                            <span class="font-serif italic text-amber-400 text-sm">A. Alfadhel</span>
-                        </div>
-
-                        <div class="bg-neutral-950 p-3 rounded-xl border border-neutral-800 flex items-center justify-between">
-                            <div>
-                                <span class="font-bold text-xs text-amber-200 block">نبيل النمر (مؤسس علامة عِزوة)</span>
-                                <span class="text-[10px] text-neutral-400">قطعة رقم #000 — الإصدار التأسيسي</span>
-                            </div>
-                            <span class="font-serif italic text-amber-400 text-sm">Nabeel Al-Nemer</span>
-                        </div>
+                        <button onclick="saveSignature()" class="w-full py-3.5 rounded-xl gold-btn text-xs font-bold shadow-lg cursor-pointer">
+                            ✨ حفظ التوقيع سحابياً في التيشيرت
+                        </button>
                     </div>
                 </div>
 
-                <p class="text-[10px] text-neutral-400 text-center leading-relaxed">
-                    يتم تحديث سجل المتحف الرقمي تلقائياً عند كل إصدار جديد وانضمام شخصيات جديدة لمجتمع عِزوة.
-                </p>
+                <!-- قائمة البصمات والتوقيعات الحية -->
+                <div class="space-y-3 pt-2">
+                    <h5 class="text-xs font-bold text-amber-300">بصمات الأصدقاء والملهمين (محدثة لحظياً)</h5>
+                    <div id="signatures-list" class="space-y-2.5 max-h-60 overflow-y-auto">
+                        <p class="text-center text-neutral-500 text-xs">جاري تحميل البصمات...</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -348,6 +370,132 @@
         let isFrontView = true;
         let selectedSize1 = 'M';
         let selectedSize2 = 'M';
+        let canvas, ctx, isDrawing = false;
+
+        // تهيئة لوحة الرسم عند تحميل الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            initCanvas();
+        });
+
+        function initCanvas() {
+            canvas = document.getElementById('signature-pad');
+            if(!canvas) return;
+            ctx = canvas.getContext('2d');
+            
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            ctx.strokeStyle = '#FBF5B7';
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // مسح وتفادي تكرار المستمعين
+            canvas.onmousedown = startDrawing;
+            canvas.onmousemove = draw;
+            canvas.onmouseup = stopDrawing;
+            canvas.onmouseleave = stopDrawing;
+
+            // لدعم الجوال باللمس
+            canvas.ontouchstart = (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            };
+
+            canvas.ontouchmove = (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            };
+
+            canvas.ontouchend = (e) => {
+                const mouseEvent = new MouseEvent('mouseup', {});
+                canvas.dispatchEvent(mouseEvent);
+            };
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        window.clearSignature = function() {
+            if(ctx && canvas) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        window.saveSignature = async function() {
+            const name = document.getElementById('guest-name').value.trim();
+            const note = document.getElementById('guest-note').value.trim();
+            
+            if(!name) {
+                alert("الرجاء إدخال اسمك الكريم أو لقبك.");
+                return;
+            }
+
+            // التحقق مما إذا كانت اللوحة فارغة
+            const blank = document.createElement('canvas');
+            blank.width = canvas.width;
+            blank.height = canvas.height;
+            if (canvas.toDataURL() === blank.toDataURL()) {
+                alert("الرجاء رسم التوقيع أو البصمة في المساحة المخصصة.");
+                return;
+            }
+
+            const signatureDataUrl = canvas.toDataURL();
+
+            try {
+                const { getFirestore, collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                const { getApps } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js");
+                const dbInstance = getFirestore(getApps()[0]);
+
+                await addDoc(collection(dbInstance, "signatures"), {
+                    name: name,
+                    note: note || "توقيع تذكاري في التيشيرت",
+                    signature: signatureDataUrl,
+                    createdAt: new Date().toISOString()
+                });
+                
+                alert("✨ تم حفظ توقيعك بنجاح في ذاكرة التيشيرت السحابية!");
+                document.getElementById('guest-name').value = '';
+                document.getElementById('guest-note').value = '';
+                clearSignature();
+            } catch(e) {
+                console.error("Error saving signature: ", e);
+                alert("حدث خطأ أثناء حفظ التوقيع سحابياً.");
+            }
+        };
 
         function switchView(view) {
             document.getElementById('view-table').classList.add('hidden');
@@ -366,6 +514,10 @@
             const activeBtn = document.getElementById('tab-' + view);
             if (activeBtn) {
                 activeBtn.className = "px-4 py-1.5 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer shadow-md";
+            }
+
+            if(view === 'wallet') {
+                setTimeout(initCanvas, 100); // إعادة ضبط مقاسات اللوحة عند فتح التبويب
             }
         }
 
