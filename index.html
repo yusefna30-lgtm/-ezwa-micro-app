@@ -34,17 +34,49 @@
             alert("تم تفعيل التنبيهات الصوتية بنجاح!");
         };
 
+        // إصلاح إرسال إشعارات تيليجرام بتجاوز قيود المتصفح (CORS)
         async function sendTelegramNotification(orderText) {
             const CHAT_ID = "884489443"; 
             try {
                 const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(orderText)}`;
-                await fetch(url);
+                await fetch(url, { mode: 'no-cors' });
             } catch (e) {
                 console.log("Telegram error: ", e);
             }
         }
 
-        // الاستماع للطلبات
+        function playNotificationSound() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = "sine";
+                oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.6);
+            } catch (e) { console.log("Audio error: ", e); }
+        }
+
+        window.saveOrderToCloud = async function(orderData) {
+            try {
+                await addDoc(collection(db, "orders"), {
+                    ...orderData,
+                    createdAt: new Date().toISOString()
+                });
+                
+                const msg = `🚨 طلب جديد في عِزوة!\n🧥 المنتج: ${orderData.product}\n📏 المقاسات: ${orderData.size}\n👤 المالك: ${orderData.customerName}\n🪑 الطاولة: ${orderData.table}\n💳 الدفع: ${orderData.paymentMethod}\n🆔 رقم الطلب: ${orderData.orderId}`;
+                await sendTelegramNotification(msg);
+            } catch (e) {
+                console.error("خطأ في حفظ الطلب: ", e);
+            }
+        };
+
+        // الاستماع للطلبات الحية في لوحة المؤسس
         const q = query(collection(db, "orders"));
         onSnapshot(q, (querySnapshot) => {
             let totalOrders = 0;
@@ -57,7 +89,7 @@
                     <div class="bg-neutral-900 p-3 rounded-xl border border-neutral-800 flex justify-between items-center text-xs mb-2">
                         <div>
                             <span class="font-bold text-amber-300 block">${data.product} (${data.size}) - ${data.orderId || ''}</span>
-                            <span class="text-[10px] text-neutral-400">الطاولة: ${data.table} | الدفع: ${data.paymentMethod}</span>
+                            <span class="text-[10px] text-neutral-400">المالك: ${data.customerName || 'ضيف'} | الطاولة: ${data.table}</span>
                         </div>
                         <span class="text-emerald-400 font-medium text-[11px]">${data.status}</span>
                     </div>
@@ -80,32 +112,6 @@
                 document.getElementById('live-orders-container').innerHTML = ordersListHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد طلبات مسجلة حتى الآن.</p>';
             }
         });
-
-        // الاستماع لتوقيعات دفتر الزوار الحية
-        const sigQuery = query(collection(db, "signatures"));
-        onSnapshot(sigQuery, (snapshot) => {
-            let sigsHtml = "";
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                sigsHtml += `
-                    <div class="bg-neutral-950 p-3 rounded-xl border border-neutral-800 space-y-2">
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="font-bold text-amber-200">${data.name}</span>
-                            <span class="text-[10px] text-neutral-500">${new Date(data.createdAt).toLocaleDateString('ar-SA')}</span>
-                        </div>
-                        <p class="text-[11px] text-neutral-300 italic">"${data.note}"</p>
-                        <div class="bg-neutral-900/80 p-2 rounded-lg border border-neutral-800 flex justify-center">
-                            <img src="${data.signature}" alt="توقيع" class="h-14 object-contain filter invert brightness-200">
-                        </div>
-                    </div>
-                `;
-            });
-
-            const container = document.getElementById('signatures-list');
-            if(container) {
-                container.innerHTML = sigsHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد بصمات مسجلة بعد. كن أول من يوقع!</p>';
-            }
-        });
     </script>
 
     <style>
@@ -126,7 +132,7 @@
 
     <main class="w-full max-w-md mx-auto space-y-6 mb-10">
 
-        <!-- 1. واجهة الطاولة (الواجهة الرئيسية للزائر) -->
+        <!-- 1. واجهة الطاولة (الشاشة الرئيسية للشراء) -->
         <div id="view-table" class="space-y-6">
             <div class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-300 text-xs px-3 py-1 rounded-bl-xl border-l border-b border-amber-500/30 font-medium z-10">
@@ -205,7 +211,7 @@
             </div>
         </div>
 
-        <!-- 2. محفظة العميل ومتحف دفتر الزوار (تفتح تلقائياً بعد الشراء أو الـ NFC) -->
+        <!-- 2. محفظة وتوثيق الملكية (تفتح حصرياً بعد إتمام الدفع بنجاح وبدون شاشة تواقيع مزعجة) -->
         <div id="view-wallet" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-6 border gold-border space-y-5">
                 <div class="flex items-center justify-between pb-3 border-b border-amber-500/20">
@@ -219,7 +225,7 @@
                     <button onclick="switchView('table')" class="text-xs bg-neutral-900 text-amber-300 px-3 py-1.5 rounded-xl border gold-border cursor-pointer">العودة للمتجر</button>
                 </div>
 
-                <!-- بيانات المالك -->
+                <!-- بيانات المالك الموثقة -->
                 <div class="bg-neutral-900/80 p-4 rounded-2xl border border-neutral-800 space-y-2">
                     <div class="flex justify-between items-center text-xs">
                         <span class="text-neutral-400">اسم المالك:</span>
@@ -235,45 +241,11 @@
                     </div>
                 </div>
 
-                <!-- دفتر زوار التيشيرت (التوقيع الحقيقي) -->
-                <div class="bg-neutral-900/60 p-4 rounded-2xl border gold-border space-y-4">
-                    <div class="flex items-center justify-between pb-2 border-b border-neutral-800">
-                        <h5 class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                            <span>✒️</span>
-                            <span>دفتر زوار التيشيرت (سجل النخبة)</span>
-                        </h5>
-                        <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">توقيع حي</span>
-                    </div>
-                    
+                <div class="bg-neutral-900/60 p-4 rounded-2xl border gold-border text-center space-y-2">
+                    <h5 class="text-xs font-bold text-amber-300">شهادة أصالة القطعة الفاخرة</h5>
                     <p class="text-[11px] text-neutral-400 leading-relaxed">
-                        اترك أثرك وتوقيعك الحقيقي بإصبعك في ذاكرة هذا التيشيرت ليبقى مخلداً في السجل الرقمي:
+                        هذه القطعة مصممة من قطن ثقيل فاخر 380gsm مع طباعة ذهبية مطفية لقصر المصمك، ومزودة بشريحة NFC مشفرة لضمان التفرد والاستدامة.
                     </p>
-
-                    <div class="space-y-3">
-                        <input type="text" id="guest-name" placeholder="اسمك الكريم أو لقبك..." class="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-xs text-neutral-200 focus:border-amber-500 outline-none">
-                        
-                        <textarea id="guest-note" placeholder="كلمة تذكارية أو إهداء قصير..." class="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-xs text-neutral-200 focus:border-amber-500 outline-none resize-none h-16"></textarea>
-                        
-                        <div>
-                            <label class="block text-[11px] text-neutral-400 mb-1.5">ارسم توقيعك أو بصمتك هنا بإصبعك:</label>
-                            <div class="relative border border-amber-500/40 rounded-xl bg-neutral-950 overflow-hidden">
-                                <canvas id="signature-pad" class="w-full h-36 touch-none cursor-crosshair"></canvas>
-                                <button type="button" onclick="clearSignature()" class="absolute top-2 left-2 text-[10px] text-amber-400 bg-neutral-900/90 px-2.5 py-1 rounded-md border border-neutral-800 cursor-pointer">مسح وإعادة</button>
-                            </div>
-                        </div>
-
-                        <button onclick="saveSignature()" class="w-full py-3.5 rounded-xl gold-btn text-xs font-bold shadow-lg cursor-pointer">
-                            ✨ حفظ التوقيع سحابياً في التيشيرت
-                        </button>
-                    </div>
-                </div>
-
-                <!-- قائمة البصمات والتوقيعات الحية -->
-                <div class="space-y-3 pt-2">
-                    <h5 class="text-xs font-bold text-amber-300">بصمات الأصدقاء والملهمين (محدثة لحظياً)</h5>
-                    <div id="signatures-list" class="space-y-2.5 max-h-60 overflow-y-auto">
-                        <p class="text-center text-neutral-500 text-xs">جاري تحميل البصمات...</p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -338,7 +310,6 @@
         let isFrontView = true;
         let selectedSize1 = 'M';
         let selectedSize2 = 'M';
-        let canvas, ctx, isDrawing = false;
 
         function switchView(view) {
             document.getElementById('view-table').classList.add('hidden');
@@ -347,10 +318,6 @@
             document.getElementById('view-founder').classList.add('hidden');
 
             document.getElementById('view-' + view).classList.remove('hidden');
-
-            if(view === 'wallet') {
-                setTimeout(initCanvas, 100);
-            }
         }
 
         function toggleImageView() {
@@ -393,105 +360,6 @@
             btn.classList.remove('text-neutral-200');
         }
 
-        function initCanvas() {
-            canvas = document.getElementById('signature-pad');
-            if(!canvas) return;
-            ctx = canvas.getContext('2d');
-            
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            
-            ctx.strokeStyle = '#FBF5B7';
-            ctx.lineWidth = 2.5;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            canvas.onmousedown = startDrawing;
-            canvas.onmousemove = draw;
-            canvas.onmouseup = stopDrawing;
-            canvas.onmouseleave = stopDrawing;
-
-            canvas.ontouchstart = (e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                canvas.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }));
-            };
-            canvas.ontouchmove = (e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                canvas.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }));
-            };
-            canvas.ontouchend = () => {
-                canvas.dispatchEvent(new MouseEvent('mouseup', {}));
-            };
-        }
-
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        }
-
-        function startDrawing(e) {
-            isDrawing = true;
-            const pos = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            const pos = getPos(e);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-        }
-
-        function stopDrawing() { isDrawing = false; }
-
-        window.clearSignature = function() {
-            if(ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-
-        window.saveSignature = async function() {
-            const name = document.getElementById('guest-name').value.trim();
-            const note = document.getElementById('guest-note').value.trim();
-            
-            if(!name) {
-                alert("الرجاء إدخال اسمك الكريم أو لقبك.");
-                return;
-            }
-
-            const blank = document.createElement('canvas');
-            blank.width = canvas.width;
-            blank.height = canvas.height;
-            if (canvas.toDataURL() === blank.toDataURL()) {
-                alert("الرجاء رسم التوقيع أو البصمة في المساحة المخصصة.");
-                return;
-            }
-
-            const signatureDataUrl = canvas.toDataURL();
-
-            try {
-                const { getFirestore, collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                const { getApps } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js");
-                const dbInstance = getFirestore(getApps()[0]);
-
-                await addDoc(collection(dbInstance, "signatures"), {
-                    name: name,
-                    note: note || "توقيع تذكاري في التيشيرت",
-                    signature: signatureDataUrl,
-                    createdAt: new Date().toISOString()
-                });
-                
-                alert("✨ تم حفظ توقيعك بنجاح في ذاكرة التيشيرت السحابية!");
-                document.getElementById('guest-name').value = '';
-                document.getElementById('guest-note').value = '';
-                clearSignature();
-            } catch(e) {
-                console.error("Error saving signature: ", e);
-                alert("حدث خطأ أثناء حفظ التوقيع سحابياً.");
-            }
-        };
-
         function accessCafeDashboard() {
             let pin = prompt("الرقم السري للمقهى:");
             if (pin === "7778") switchView('cafe'); else if (pin !== null) alert("الرقم السري غير صحيح!");
@@ -502,12 +370,14 @@
             if (pin === "1984") switchView('founder'); else if (pin !== null) alert("الرقم السري غير صحيح!");
         }
 
+        // إتمام الطلب، إرسال إشعار تيليجرام، ثم الانتقال لصفحة التوثيق بعد الدفع
         async function processCheckout() {
             const isBundle = document.getElementById('opt-bundle').checked;
             const paymentMethod = isBundle ? "عرض الصديقين (350 ر.س)" : "قطعة مفردة - Apple Pay / شبكة (199 ر.س)";
             const productTitle = isBundle ? "عرض الصديقين (تيشيرت قصر المصمك ×2)" : "تيشيرت قصر المصمك";
             const finalSizes = isBundle ? `قطعة 1: [${selectedSize1}] ، قطعة 2: [${selectedSize2}]` : selectedSize1;
 
+            // طلب اسم العميل للتوثيق بعد الدفع
             const customerName = prompt("أدخل اسمك الكريم لتوثيق القطعة رسمياً باسمك:", "ضيف عِزوة الكريم") || "ضيف عِزوة";
             document.getElementById('owner-display').innerText = customerName;
 
@@ -517,18 +387,19 @@
                 product: productTitle,
                 size: finalSizes,
                 paymentMethod: paymentMethod,
+                customerName: customerName,
                 table: "#04",
                 status: "مؤكد - بانتظار الاستلام"
             };
 
+            // حفظ الطلب وإرسال إشعار تيليجرام
             if (window.saveOrderToCloud) await window.saveOrderToCloud(orderData);
             
-            alert("تم إتمام الطلب بنجاح! رقم طلبك: " + orderNumber + "\nأبرز هذا الرقم للباريستا، وجاري الانتقال لبطاقة التوثيق السحابي ومحفظتك الرقمية.");
+            alert("تم إتمام الطلب بنجاح! رقم طلبك: " + orderNumber + "\nأبرز هذا الرقم للباريستا، وجاري فتح محفظة التوثيق السحابي الخاصة بك.");
             
-            // الانتقال الفوري لمحفظة العميل بعد إتمام الشراء
+            // الانتقال الفوري لمحفظة التوثيق بعد إتمام الشراء والدفع
             switchView('wallet');
         }
     </script>
 </body>
 </html>
-
