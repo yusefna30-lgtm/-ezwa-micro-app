@@ -104,7 +104,6 @@
             if(document.getElementById('founder-total-revenue')) {
                 document.getElementById('founder-total-revenue').innerText = totalRevenue + " ر.س";
                 document.getElementById('founder-net-profit').innerText = netProfit.toFixed(1) + " ر.س";
-                document.getElementById('founder-orders-count').innerText = totalOrders + " طلبات";
             }
 
             if (document.getElementById('live-orders-container')) {
@@ -124,20 +123,20 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-between p-4 selection:bg-amber-500 selection:text-black">
 
-    <header class="w-full max-w-md mx-auto text-center py-6">
+    <header class="w-full max-w-md mx-auto text-center py-5">
         <h1 class="text-3xl font-black tracking-widest gold-gradient mb-1">عِزوة | EZWA</h1>
-        <p class="text-xs text-amber-200/70 tracking-wider">اكتشف الرياض — إصدار قصر المصمك</p>
+        <p class="text-xs text-amber-200/70 tracking-wider mb-4">اكتشف الرياض — إصدار قصر المصمك</p>
         
-        <div class="flex justify-center gap-2 mt-4">
-            <button onclick="switchView('table')" id="btn-table" class="px-3 py-1 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer">واجهة الشراء</button>
-            <!-- تم ربط زر التحكم بالرقم السري للمؤسس ليكون آمناً -->
-            <button onclick="accessFounderDashboard()" id="btn-founder" class="px-3 py-1 text-xs rounded-lg bg-neutral-800 text-amber-300 border gold-border transition cursor-pointer">لوحة التحكم</button>
+        <!-- التبويبات العلوية للعميل فقط -->
+        <div class="flex justify-center gap-2 px-1">
+            <button onclick="switchView('table')" id="tab-table" class="px-4 py-1.5 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer shadow-md">واجهة الطاولة</button>
+            <button onclick="switchView('wallet')" id="tab-wallet" class="px-4 py-1.5 text-xs rounded-lg bg-neutral-900 text-amber-300 border gold-border transition cursor-pointer">محفظة العميل</button>
         </div>
     </header>
 
     <main class="w-full max-w-md mx-auto space-y-6 mb-10">
 
-        <!-- VIEW 1: TABLE SHOPPING (افتراضياً هي التي تظهر أولاً) -->
+        <!-- 1. واجهة الطاولة -->
         <div id="view-table" class="space-y-6">
             <div class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-300 text-xs px-3 py-1 rounded-bl-xl border-l border-b border-amber-500/30 font-medium z-10">
@@ -216,19 +215,33 @@
             </div>
         </div>
 
-        <!-- VIEW 2: CAFE DASHBOARD (مخفية) -->
+        <!-- 2. محفظة العميل -->
+        <div id="view-wallet" class="space-y-6 hidden">
+            <div class="glass rounded-3xl p-6 border gold-border space-y-4">
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <span class="text-3xl">☁️</span>
+                    <div>
+                        <h4 class="font-bold text-sm text-amber-100">التوثيق السحابي للملكية</h4>
+                        <span class="text-xs text-emerald-400 font-medium">القطعة موثقة رسمياً باسمك (إصدار قصر المصمك #012)</span>
+                    </div>
+                </div>
+                <p class="text-xs text-neutral-400 leading-relaxed">تتيح لك هذه المحفظة إثبات ملكيتك الرقمية عبر شريحة الـ NFC المدمجة في التيشيرت، واستعراض تفاصيل الإصدار الحصري.</p>
+            </div>
+        </div>
+
+        <!-- 3. لوحة تحكم الشريك (المقهى) -->
         <div id="view-cafe" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-5 border border-amber-500/40 bg-neutral-950">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-neutral-800">
                     <h3 class="font-bold text-sm text-amber-200">لوحة تحكم الشريك (المقهى)</h3>
                 </div>
                 <button onclick="enableAudio()" class="w-full mb-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/40 hover:bg-amber-500 hover:text-black transition cursor-pointer">
-                    🔊 تفعيل التنبيهات الصوتية
+                    🔊 تفعيل التنبيهات الصوتية للطلبات
                 </button>
             </div>
         </div>
 
-        <!-- VIEW 3: FOUNDER DASHBOARD (مخفية افتراضياً) -->
+        <!-- 4. لوحة تحكم المؤسس -->
         <div id="view-founder" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-5 border-2 gold-border bg-neutral-950">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-500/30">
@@ -261,6 +274,7 @@
 
     </main>
 
+    <!-- الفوتر يحتوي الآن على أزرار دخول المقهى ولوحة المؤسس -->
     <footer class="w-full max-w-md mx-auto text-center py-6 text-[10px] text-neutral-500 border-t border-neutral-900 space-y-4">
         <div class="flex justify-center gap-3">
             <button onclick="accessCafeDashboard()" class="px-3.5 py-2 rounded-xl bg-neutral-900 text-neutral-300 border border-neutral-700 text-xs font-medium cursor-pointer hover:bg-neutral-800 transition">☕ دخول المقهى</button>
@@ -276,12 +290,23 @@
 
         function switchView(view) {
             document.getElementById('view-table').classList.add('hidden');
+            document.getElementById('view-wallet').classList.add('hidden');
             document.getElementById('view-cafe').classList.add('hidden');
             document.getElementById('view-founder').classList.add('hidden');
 
-            if (view === 'table') document.getElementById('view-table').classList.remove('hidden');
-            else if (view === 'cafe') document.getElementById('view-cafe').classList.remove('hidden');
-            else if (view === 'founder') document.getElementById('view-founder').classList.remove('hidden');
+            // تحديث التبويبات العلوية فقط إذا كانت مرئية
+            ['table', 'wallet'].forEach(t => {
+                const btn = document.getElementById('tab-' + t);
+                if(btn) {
+                    btn.className = "px-4 py-1.5 text-xs rounded-lg bg-neutral-900 text-neutral-300 border border-neutral-700 transition cursor-pointer";
+                }
+            });
+
+            document.getElementById('view-' + view).classList.remove('hidden');
+            const activeBtn = document.getElementById('tab-' + view);
+            if (activeBtn) {
+                activeBtn.className = "px-4 py-1.5 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer shadow-md";
+            }
         }
 
         function toggleImageView() {
@@ -326,12 +351,26 @@
 
         function accessCafeDashboard() {
             let pin = prompt("الرقم السري للمقهى:");
-            if (pin === "7778") switchView('cafe'); else if (pin !== null) alert("الرقم السري غير صحيح!");
+            if (pin === "7778") {
+                document.getElementById('view-table').classList.add('hidden');
+                document.getElementById('view-wallet').classList.add('hidden');
+                document.getElementById('view-founder').classList.add('hidden');
+                document.getElementById('view-cafe').classList.remove('hidden');
+            } else if (pin !== null) {
+                alert("الرقم السري غير صحيح!");
+            }
         }
 
         function accessFounderDashboard() {
             let pin = prompt("الرقم السري للمؤسس:");
-            if (pin === "1984") switchView('founder'); else if (pin !== null) alert("الرقم السري غير صحيح!");
+            if (pin === "1984") {
+                document.getElementById('view-table').classList.add('hidden');
+                document.getElementById('view-wallet').classList.add('hidden');
+                document.getElementById('view-cafe').classList.add('hidden');
+                document.getElementById('view-founder').classList.remove('hidden');
+            } else if (pin !== null) {
+                alert("الرقم السري غير صحيح!");
+            }
         }
 
         async function processCheckout() {
