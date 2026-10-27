@@ -143,8 +143,9 @@
                     طاولة رقم #04 (مقهى مختص)
                 </div>
                 
-                <div class="w-full h-64 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
-                    <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover object-center transition duration-500">
+                <!-- تم تعديل الارتفاع لتبدو الصورة كاملة وواضحة -->
+                <div class="w-full h-80 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
+                    <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover object-top transition duration-500">
                     
                     <button onclick="toggleImageView()" class="absolute bottom-3 left-3 px-3.5 py-2 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1.5 cursor-pointer z-10">
                         <span>🔄</span>
@@ -215,7 +216,19 @@
             </div>
         </div>
 
-        <!-- VIEW 2: FOUNDER DASHBOARD -->
+        <!-- VIEW 2: CAFE DASHBOARD -->
+        <div id="view-cafe" class="space-y-6 hidden">
+            <div class="glass rounded-3xl p-5 border border-amber-500/40 bg-neutral-950">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-neutral-800">
+                    <h3 class="font-bold text-sm text-amber-200">لوحة تحكم الشريك (المقهى)</h3>
+                </div>
+                <button onclick="enableAudio()" class="w-full mb-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/40 hover:bg-amber-500 hover:text-black transition cursor-pointer">
+                    🔊 تفعيل التنبيهات الصوتية
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 3: FOUNDER DASHBOARD -->
         <div id="view-founder" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-5 border-2 gold-border bg-neutral-950">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-500/30">
@@ -248,7 +261,12 @@
 
     </main>
 
-    <footer class="w-full max-w-md mx-auto text-center py-6 text-[10px] text-neutral-500 border-t border-neutral-900 space-y-2">
+    <!-- الفوتر مع أزرار الدخول السريع للمقهى والمؤسس -->
+    <footer class="w-full max-w-md mx-auto text-center py-6 text-[10px] text-neutral-500 border-t border-neutral-900 space-y-4">
+        <div class="flex justify-center gap-3">
+            <button onclick="accessCafeDashboard()" class="px-3.5 py-2 rounded-xl bg-neutral-900 text-neutral-300 border border-neutral-700 text-xs font-medium cursor-pointer hover:bg-neutral-800 transition">☕ دخول المقهى</button>
+            <button onclick="accessFounderDashboard()" class="px-3.5 py-2 rounded-xl bg-neutral-900 text-amber-400 border border-amber-500/50 text-xs font-medium cursor-pointer hover:bg-neutral-800 transition">👑 لوحة المؤسس</button>
+        </div>
         <div>عِزوة (EZWA) © 2026</div>
     </footer>
 
@@ -259,9 +277,11 @@
 
         function switchView(view) {
             document.getElementById('view-table').classList.add('hidden');
+            document.getElementById('view-cafe').classList.add('hidden');
             document.getElementById('view-founder').classList.add('hidden');
 
             if (view === 'table') document.getElementById('view-table').classList.remove('hidden');
+            else if (view === 'cafe') document.getElementById('view-cafe').classList.remove('hidden');
             else if (view === 'founder') document.getElementById('view-founder').classList.remove('hidden');
         }
 
@@ -303,6 +323,16 @@
             }
             btn.classList.add('bg-amber-500', 'text-black', 'shadow-md');
             btn.classList.remove('text-neutral-200');
+        }
+
+        function accessCafeDashboard() {
+            let pin = prompt("الرقم السري للمقهى:");
+            if (pin === "7778") switchView('cafe'); else if (pin !== null) alert("الرقم السري غير صحيح!");
+        }
+
+        function accessFounderDashboard() {
+            let pin = prompt("الرقم السري للمؤسس:");
+            if (pin === "1984") switchView('founder'); else if (pin !== null) alert("الرقم السري غير صحيح!");
         }
 
         async function processCheckout() {
