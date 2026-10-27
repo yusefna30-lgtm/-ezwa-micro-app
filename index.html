@@ -28,16 +28,12 @@
         let audioCtx = null;
         const TELEGRAM_TOKEN = "8978898956:AAGt5hp_hKeQfN137LPnDtQzR5VS8bhEuYo";
 
-        // دالة تفعيل الصوت للمتصفح
         window.enableAudio = function() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (audioCtx.state === 'suspended') { audioCtx.resume(); }
             alert("تم تفعيل التنبيهات الصوتية بنجاح!");
         };
 
-        // إرسال إشعار فوري إلى تيليجرام
         async function sendTelegramNotification(orderText) {
             const CHAT_ID = "884489443"; 
             try {
@@ -48,15 +44,10 @@
             }
         }
 
-        // تشغيل صوت تنبيه فاخر
         function playNotificationSound() {
             try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
                 oscillator.type = "sine";
@@ -67,12 +58,9 @@
                 gainNode.connect(audioCtx.destination);
                 oscillator.start();
                 oscillator.stop(audioCtx.currentTime + 0.6);
-            } catch (e) {
-                console.log("Audio error: ", e);
-            }
+            } catch (e) { console.log("Audio error: ", e); }
         }
 
-        // حفظ الطلب سحابياً وإرسال تنبيه تيليجرام
         window.saveOrderToCloud = async function(orderData) {
             try {
                 await addDoc(collection(db, "orders"), {
@@ -82,15 +70,11 @@
                 
                 const msg = `🚨 طلب جديد في عِزوة!\n🧥 المنتج: ${orderData.product}\n📏 المقاسات: ${orderData.size}\n🪑 الطاولة: ${orderData.table}\n💳 الدفع: ${orderData.paymentMethod}\n🆔 رقم الطلب: ${orderData.orderId}`;
                 sendTelegramNotification(msg);
-
-                console.log("تم حفظ الطلب وإرسال تنبيه تيليجرام بنجاح!");
             } catch (e) {
                 console.error("خطأ في حفظ الطلب: ", e);
             }
         };
 
-        // الاستماع الذكي للطلبات الجديدة
-        let isFirstLoad = true;
         const q = query(collection(db, "orders"));
         onSnapshot(q, (querySnapshot) => {
             let totalOrders = 0;
@@ -126,16 +110,6 @@
             if (document.getElementById('live-orders-container')) {
                 document.getElementById('live-orders-container').innerHTML = ordersListHtml || '<p class="text-center text-neutral-500 text-xs">لا توجد طلبات مسجلة حتى الآن.</p>';
             }
-
-            if (isFirstLoad) {
-                isFirstLoad = false;
-            } else {
-                querySnapshot.docChanges().forEach((change) => {
-                    if (change.type === "added") {
-                        playNotificationSound();
-                    }
-                });
-            }
         });
     </script>
 
@@ -165,4 +139,191 @@
         <!-- VIEW 1: TABLE SHOPPING -->
         <div id="view-table" class="space-y-6">
             <div class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 bg-amber-500/15 text-
+                <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-300 text-xs px-3 py-1 rounded-bl-xl border-l border-b border-amber-500/30 font-medium z-10">
+                    طاولة رقم #04 (مقهى مختص)
+                </div>
+                
+                <div class="w-full h-64 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
+                    <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover object-center transition duration-500">
+                    
+                    <button onclick="toggleImageView()" class="absolute bottom-3 left-3 px-3.5 py-2 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1.5 cursor-pointer z-10">
+                        <span>🔄</span>
+                        <span id="toggle-btn-text">عرض الظهر والتصميم</span>
+                    </button>
+                </div>
+
+                <div class="text-center mb-4">
+                    <h3 class="font-bold text-lg text-amber-100">تيشيرت قصر المصمك (Boxy Fit)</h3>
+                    <p class="text-xs text-neutral-400 mt-1">قطن ثقيل فاخر 380gsm مع شريحة NFC وتوثيق سحابي</p>
+                </div>
+
+                <!-- خيارات الشراء -->
+                <div class="space-y-3 mb-4">
+                    <label class="flex items-center justify-between p-3.5 rounded-xl border gold-border bg-neutral-950/60 cursor-pointer hover:bg-amber-500/5 transition" onclick="toggleBundleSizes(false)">
+                        <div class="flex items-center space-x-3 space-x-reverse">
+                            <input type="radio" name="purchase_option" id="opt-single" checked class="accent-amber-500 w-4 h-4">
+                            <div>
+                                <span class="font-bold text-sm block text-neutral-200">قطعة مفردة (Apple Pay / شبكة)</span>
+                                <span class="text-xs text-neutral-400">شامل الضيافة (قهوة مختصة مجانية)</span>
+                            </div>
+                        </div>
+                        <span class="font-bold text-amber-300 text-base">199 ر.س</span>
+                    </label>
+
+                    <label class="flex items-center justify-between p-3.5 rounded-xl border border-amber-500/60 bg-amber-500/10 cursor-pointer transition" onclick="toggleBundleSizes(true)">
+                        <div class="flex items-center space-x-3 space-x-reverse">
+                            <input type="radio" name="purchase_option" id="opt-bundle" class="accent-amber-500 w-4 h-4">
+                            <div>
+                                <span class="font-bold text-sm block text-amber-200">عرض الصديقين</span>
+                                <span class="text-xs text-amber-400/90">قطعتان + كوبا قهوة مجاناً</span>
+                            </div>
+                        </div>
+                        <div class="text-left">
+                            <span class="font-bold text-amber-300 text-base block">350 ر.س</span>
+                            <span class="text-[10px] text-neutral-400 line-through">398 ر.س</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- محدد المقاسات -->
+                <div class="mb-6 space-y-4 bg-neutral-900/50 p-4 rounded-2xl border gold-border">
+                    <div>
+                        <label id="size-label-1" class="block text-xs text-amber-200 mb-2 font-medium">اختر المقاس:</label>
+                        <div id="size-selector-1" class="grid grid-cols-4 gap-2 text-center">
+                            <button type="button" onclick="selectSize(1, 'S', this)" class="size-btn-1 py-2 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">S</button>
+                            <button type="button" onclick="selectSize(1, 'M', this)" class="size-btn-1 py-2 rounded-xl border gold-border text-xs font-bold bg-amber-500 text-black shadow-md cursor-pointer">M</button>
+                            <button type="button" onclick="selectSize(1, 'L', this)" class="size-btn-1 py-2 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">L</button>
+                            <button type="button" onclick="selectSize(1, 'XL', this)" class="size-btn-1 py-2 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">XL</button>
+                        </div>
+                    </div>
+
+                    <!-- مقاس القطعة الثانية -->
+                    <div id="second-size-box" class="hidden pt-3 border-t border-neutral-800">
+                        <label class="block text-xs text-amber-300 mb-2 font-medium">اختر مقاس القطعة الثانية (عرض الصديقين):</label>
+                        <div id="size-selector-2" class="grid grid-cols-4 gap-2 text-center">
+                            <button type="button" onclick="selectSize(2, 'S', this)" class="size-btn-2 py-2 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">S</button>
+                            <button type="button" onclick="selectSize(2, 'M', this)" class="size-btn-2 py-2 rounded-xl border gold-border text-xs font-bold bg-amber-500 text-black shadow-md cursor-pointer">M</button>
+                            <button type="button" onclick="selectSize(2, 'L', this)" class="size-btn-2 py-2 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">L</button>
+                            <button type="button" onclick="selectSize(2, 'XL', this)" class="size-btn-2 py-2 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">XL</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="processCheckout()" class="w-full py-4 rounded-xl gold-btn shadow-lg flex items-center justify-center space-x-2 space-x-reverse tracking-wider text-sm cursor-pointer">
+                    <span>إتمام الطلب والاستلام الفوري ☕</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 2: FOUNDER DASHBOARD -->
+        <div id="view-founder" class="space-y-6 hidden">
+            <div class="glass rounded-3xl p-5 border-2 gold-border bg-neutral-950">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-500/30">
+                    <h3 class="font-bold text-sm text-amber-300">لوحة تحكم المؤسس (نبيل النمر)</h3>
+                </div>
+                
+                <button onclick="enableAudio()" class="w-full mb-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border gold-border hover:bg-amber-500 hover:text-black transition cursor-pointer">
+                    🔊 تفعيل التنبيهات الصوتية للطلبات
+                </button>
+
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="bg-neutral-900 p-3 rounded-2xl border gold-border text-center">
+                        <span class="text-[11px] text-neutral-400 block mb-1">إجمالي الإيرادات</span>
+                        <span id="founder-total-revenue" class="text-lg font-black text-amber-300">0 ر.س</span>
+                    </div>
+                    <div class="bg-neutral-900 p-3 rounded-2xl border gold-border text-center">
+                        <span class="text-[11px] text-neutral-400 block mb-1">صافي الأرباح</span>
+                        <span id="founder-net-profit" class="text-lg font-black text-emerald-400">0 ر.س</span>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <h4 class="text-xs font-bold text-amber-200 mb-2">سجل الطلبات الحية:</h4>
+                    <div id="live-orders-container" class="max-h-40 overflow-y-auto space-y-1">
+                        <p class="text-center text-neutral-500 text-xs">جاري المزامنة...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="w-full max-w-md mx-auto text-center py-6 text-[10px] text-neutral-500 border-t border-neutral-900 space-y-2">
+        <div>عِزوة (EZWA) © 2026</div>
+    </footer>
+
+    <script>
+        let isFrontView = true;
+        let selectedSize1 = 'M';
+        let selectedSize2 = 'M';
+
+        function switchView(view) {
+            document.getElementById('view-table').classList.add('hidden');
+            document.getElementById('view-founder').classList.add('hidden');
+
+            if (view === 'table') document.getElementById('view-table').classList.remove('hidden');
+            else if (view === 'founder') document.getElementById('view-founder').classList.remove('hidden');
+        }
+
+        function toggleImageView() {
+            const imgElement = document.getElementById('product-img');
+            const btnText = document.getElementById('toggle-btn-text');
+            isFrontView = !isFrontView;
+            imgElement.src = isFrontView ? "masmak-back1.jpg" : "masmak-back.jpg";
+            btnText.innerText = isFrontView ? "عرض الظهر والتصميم" : "عرض الوجه الأمامي";
+        }
+
+        function toggleBundleSizes(isBundle) {
+            const secondBox = document.getElementById('second-size-box');
+            const label1 = document.getElementById('size-label-1');
+            if (isBundle) {
+                secondBox.classList.remove('hidden');
+                label1.innerText = "اختر مقاس القطعة الأولى:";
+                document.getElementById('opt-bundle').checked = true;
+            } else {
+                secondBox.classList.add('hidden');
+                label1.innerText = "اختر المقاس:";
+                document.getElementById('opt-single').checked = true;
+            }
+        }
+
+        function selectSize(pieceNum, size, btn) {
+            if (pieceNum === 1) {
+                selectedSize1 = size;
+                document.querySelectorAll('.size-btn-1').forEach(b => {
+                    b.classList.remove('bg-amber-500', 'text-black', 'shadow-md');
+                    b.classList.add('text-neutral-200');
+                });
+            } else {
+                selectedSize2 = size;
+                document.querySelectorAll('.size-btn-2').forEach(b => {
+                    b.classList.remove('bg-amber-500', 'text-black', 'shadow-md');
+                    b.classList.add('text-neutral-200');
+                });
+            }
+            btn.classList.add('bg-amber-500', 'text-black', 'shadow-md');
+            btn.classList.remove('text-neutral-200');
+        }
+
+        async function processCheckout() {
+            const isBundle = document.getElementById('opt-bundle').checked;
+            const paymentMethod = isBundle ? "عرض الصديقين (350 ر.س)" : "قطعة مفردة - Apple Pay / شبكة (199 ر.س)";
+            const productTitle = isBundle ? "عرض الصديقين (تيشيرت قصر المصمك ×2)" : "تيشيرت قصر المصمك";
+            const finalSizes = isBundle ? `قطعة 1: [${selectedSize1}] ، قطعة 2: [${selectedSize2}]` : selectedSize1;
+
+            const orderNumber = 'EZ-' + Math.floor(1000 + Math.random() * 9000);
+            const orderData = {
+                orderId: orderNumber,
+                product: productTitle,
+                size: finalSizes,
+                paymentMethod: paymentMethod,
+                table: "#04",
+                status: "مؤكد - بانتظار الاستلام"
+            };
+
+            if (window.saveOrderToCloud) await window.saveOrderToCloud(orderData);
+            alert("تم إتمام الطلب بنجاح! رقم طلبك: " + orderNumber + "\nأبرز هذا الرقم للباريستا لاستلام طلبك مع الضيافة فوراً.");
+        }
+    </script>
+</body>
+</html>
