@@ -37,7 +37,7 @@
             alert("تم تفعيل التنبيهات الصوتية بنجاح!");
         };
 
-        // إرسال إشعار فوري إلى تيليجرام (حتى والشاشة مغلقة)
+        // إرسال إشعار فوري إلى تيليجرام
         async function sendTelegramNotification(orderText) {
             const CHAT_ID = "884489443"; 
             try {
@@ -80,7 +80,7 @@
                     createdAt: new Date().toISOString()
                 });
                 
-                const msg = `🚨 طلب جديد في عِزوة!\n🧥 المنتج: ${orderData.product} (${orderData.size})\n🪑 الطاولة: ${orderData.table}\n💳 الدفع: ${orderData.paymentMethod}`;
+                const msg = `🚨 طلب جديد في عِزوة!\n🧥 المنتج: ${orderData.product}\n📏 المقاسات: ${orderData.size}\n🪑 الطاولة: ${orderData.table}\n💳 الدفع: ${orderData.paymentMethod}\n🆔 رقم الطلب: ${orderData.orderId}`;
                 sendTelegramNotification(msg);
 
                 console.log("تم حفظ الطلب وإرسال تنبيه تيليجرام بنجاح!");
@@ -102,7 +102,7 @@
                 ordersListHtml += `
                     <div class="bg-neutral-900 p-3 rounded-xl border border-neutral-800 flex justify-between items-center text-xs mb-2">
                         <div>
-                            <span class="font-bold text-amber-300 block">${data.product} (${data.size})</span>
+                            <span class="font-bold text-amber-300 block">${data.product} (${data.size}) - ${data.orderId || ''}</span>
                             <span class="text-[10px] text-neutral-400">الطاولة: ${data.table} | الدفع: ${data.paymentMethod}</span>
                         </div>
                         <span class="text-emerald-400 font-medium text-[11px]">${data.status}</span>
@@ -114,15 +114,13 @@
             const costPerItem = 80;
             const totalRevenue = totalOrders * unitPrice;
             const totalCost = totalOrders * costPerItem;
-            const totalCafeCommission = totalOrders * (19.9 + 10); 
+            const totalCafeCommission = totalOrders * 29.9; 
             const netProfit = totalRevenue - totalCost - totalCafeCommission;
 
             if(document.getElementById('founder-total-revenue')) {
                 document.getElementById('founder-total-revenue').innerText = totalRevenue + " ر.س";
                 document.getElementById('founder-net-profit').innerText = netProfit.toFixed(1) + " ر.س";
-                document.getElementById('founder-total-cost').innerText = totalCost + " ر.س (" + totalOrders + " قطعة)";
-                document.getElementById('founder-total-commissions').innerText = totalCafeCommission.toFixed(1) + " ر.س";
-                document.getElementById('founder-orders-count').innerText = totalOrders + " / 20 عميلاً";
+                document.getElementById('founder-orders-count').innerText = totalOrders + " طلبات";
             }
 
             if (document.getElementById('live-orders-container')) {
@@ -158,7 +156,7 @@
         
         <div class="flex justify-center gap-2 mt-4">
             <button onclick="switchView('table')" id="btn-table" class="px-3 py-1 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer">واجهة الشراء</button>
-            <button onclick="switchView('wallet')" id="btn-wallet" class="px-3 py-1 text-xs rounded-lg bg-neutral-800 text-amber-300 border gold-border transition cursor-pointer">محفظة السفير</button>
+            <button onclick="switchView('founder')" id="btn-founder" class="px-3 py-1 text-xs rounded-lg bg-neutral-800 text-amber-300 border gold-border transition cursor-pointer">لوحة التحكم</button>
         </div>
     </header>
 
@@ -167,196 +165,4 @@
         <!-- VIEW 1: TABLE SHOPPING -->
         <div id="view-table" class="space-y-6">
             <div class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-300 text-xs px-3 py-1 rounded-bl-xl border-l border-b border-amber-500/30 font-medium z-10">
-                    طاولة رقم #04 (مقهى مختص)
-                </div>
-                
-                <div class="w-full h-96 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
-                    <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover object-center transition duration-500">
-                    
-                    <button onclick="toggleImageView()" class="absolute bottom-3 left-3 px-3.5 py-2 bg-neutral-900/90 hover:bg-amber-500 hover:text-black text-amber-300 text-xs font-bold rounded-xl border gold-border backdrop-blur-md shadow-lg transition flex items-center gap-1.5 cursor-pointer z-10">
-                        <span>🔄</span>
-                        <span id="toggle-btn-text">عرض الظهر والتصميم</span>
-                    </button>
-                </div>
-
-                <div class="text-center mb-4">
-                    <h3 class="font-bold text-lg text-amber-100">تيشيرت قصر المصمك (Boxy Fit)</h3>
-                    <p class="text-xs text-neutral-400 mt-1">قطن ثقيل فاخر 380gsm مع شريحة NFC وتوثيق سحابي</p>
-                </div>
-
-                <div class="space-y-3 mb-6">
-                    <label class="flex items-center justify-between p-3.5 rounded-xl border gold-border bg-neutral-950/60 cursor-pointer hover:bg-amber-500/5 transition" onclick="toggleBankDetails(false)">
-                        <div class="flex items-center space-x-3 space-x-reverse">
-                            <input type="radio" name="purchase_option" id="opt-single" checked class="accent-amber-500 w-4 h-4">
-                            <div>
-                                <span class="font-bold text-sm block text-neutral-200">قطعة مفردة (Apple Pay / شبكة)</span>
-                                <span class="text-xs text-neutral-400">شامل الضيافة (قهوة مختصة مجانية)</span>
-                            </div>
-                        </div>
-                        <span class="font-bold text-amber-300 text-base">199 ر.س</span>
-                    </label>
-
-                    <label class="flex items-center justify-between p-3.5 rounded-xl border border-amber-500/60 bg-amber-500/10 cursor-pointer transition" onclick="toggleBankDetails(false)">
-                        <div class="flex items-center space-x-3 space-x-reverse">
-                            <input type="radio" name="purchase_option" id="opt-bundle" class="accent-amber-500 w-4 h-4">
-                            <div>
-                                <span class="font-bold text-sm block text-amber-200">عرض الصديقين</span>
-                                <span class="text-xs text-amber-400/90">قطعتان + كوبا قهوة مجاناً</span>
-                            </div>
-                        </div>
-                        <div class="text-left">
-                            <span class="font-bold text-amber-300 text-base block">350 ر.س</span>
-                            <span class="text-[10px] text-neutral-400 line-through">398 ر.س</span>
-                        </div>
-                    </label>
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-xs text-neutral-400 mb-2 font-medium">اختر المقاس:</label>
-                    <div id="size-selector" class="grid grid-cols-4 gap-2 text-center">
-                        <button type="button" onclick="selectSize('S', this)" class="size-btn py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">S</button>
-                        <button type="button" onclick="selectSize('M', this)" class="size-btn py-2.5 rounded-xl border gold-border text-xs font-bold bg-amber-500 text-black shadow-md cursor-pointer">M</button>
-                        <button type="button" onclick="selectSize('L', this)" class="size-btn py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">L</button>
-                        <button type="button" onclick="selectSize('XL', this)" class="size-btn py-2.5 rounded-xl border gold-border text-xs font-bold hover:bg-amber-500 hover:text-black transition text-neutral-200 cursor-pointer">XL</button>
-                    </div>
-                </div>
-
-                <button onclick="processCheckout()" class="w-full py-4 rounded-xl gold-btn shadow-lg flex items-center justify-center space-x-2 space-x-reverse tracking-wider text-sm cursor-pointer">
-                    <span>إتمام الطلب والاستلام الفوري</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- VIEW 2: WALLET -->
-        <div id="view-wallet" class="space-y-6 hidden">
-            <div class="glass rounded-3xl p-5 border gold-border">
-                <div class="flex items-center space-x-3 space-x-reverse mb-3">
-                    <span class="text-2xl">☁️</span>
-                    <div>
-                        <h4 class="font-bold text-sm text-amber-100">التوثيق السحابي للملكية</h4>
-                        <span class="text-[11px] text-emerald-400 font-medium">القطعة موثقة رسمياً باسمك (إصدار قصر المصمك #012)</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- VIEW 3: CAFE DASHBOARD -->
-        <div id="view-cafe" class="space-y-6 hidden">
-            <div class="glass rounded-3xl p-5 border border-amber-500/40 bg-neutral-950">
-                <div class="flex items-center justify-between mb-4 pb-3 border-b border-neutral-800">
-                    <h3 class="font-bold text-sm text-amber-200">لوحة تحكم الشريك (المقهى)</h3>
-                </div>
-                <button onclick="enableAudio()" class="w-full mb-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/40 hover:bg-amber-500 hover:text-black transition cursor-pointer">
-                    🔊 تفعيل التنبيهات الصوتية
-                </button>
-            </div>
-        </div>
-
-        <!-- VIEW 4: FOUNDER DASHBOARD -->
-        <div id="view-founder" class="space-y-6 hidden">
-            <div class="glass rounded-3xl p-5 border-2 gold-border bg-neutral-950">
-                <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-500/30">
-                    <h3 class="font-bold text-sm text-amber-300">لوحة تحكم المؤسس (نبيل النمر)</h3>
-                </div>
-                
-                <button onclick="enableAudio()" class="w-full mb-4 py-2.5 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border gold-border hover:bg-amber-500 hover:text-black transition cursor-pointer">
-                    🔊 تفعيل التنبيهات الصوتية
-                </button>
-
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div class="bg-neutral-900 p-3 rounded-2xl border gold-border text-center">
-                        <span class="text-[11px] text-neutral-400 block mb-1">إجمالي الإيرادات</span>
-                        <span id="founder-total-revenue" class="text-lg font-black text-amber-300">0 ر.س</span>
-                    </div>
-                    <div class="bg-neutral-900 p-3 rounded-2xl border gold-border text-center">
-                        <span class="text-[11px] text-neutral-400 block mb-1">صافي الأرباح</span>
-                        <span id="founder-net-profit" class="text-lg font-black text-emerald-400">0 ر.س</span>
-                    </div>
-                </div>
-
-                <div class="mb-2">
-                    <h4 class="text-xs font-bold text-amber-200 mb-2">سجل الطلبات الحية:</h4>
-                    <div id="live-orders-container" class="max-h-40 overflow-y-auto space-y-1">
-                        <p class="text-center text-neutral-500 text-xs">جاري المزامنة...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <footer class="w-full max-w-md mx-auto text-center py-6 text-[10px] text-neutral-500 border-t border-neutral-900 space-y-4">
-        <div class="flex justify-center gap-3">
-            <button onclick="accessCafeDashboard()" class="px-3 py-1.5 rounded-lg bg-neutral-900 text-neutral-400 border border-neutral-700 text-xs cursor-pointer">☕ دخول المقهى</button>
-            <button onclick="accessFounderDashboard()" class="px-3 py-1.5 rounded-lg bg-neutral-900 text-amber-400 border border-amber-500/50 text-xs cursor-pointer">👑 لوحة المؤسس</button>
-        </div>
-        <div>عِزوة (EZWA) © 2026</div>
-    </footer>
-
-    <script>
-        let isFrontView = true;
-        let selectedSize = 'M';
-
-        function switchView(view) {
-            document.getElementById('view-table').classList.add('hidden');
-            document.getElementById('view-wallet').classList.add('hidden');
-            document.getElementById('view-cafe').classList.add('hidden');
-            document.getElementById('view-founder').classList.add('hidden');
-
-            if (view === 'table') document.getElementById('view-table').classList.remove('hidden');
-            else if (view === 'wallet') document.getElementById('view-wallet').classList.remove('hidden');
-            else if (view === 'cafe') document.getElementById('view-cafe').classList.remove('hidden');
-            else if (view === 'founder') document.getElementById('view-founder').classList.remove('hidden');
-        }
-
-        function toggleImageView() {
-            const imgElement = document.getElementById('product-img');
-            const btnText = document.getElementById('toggle-btn-text');
-            isFrontView = !isFrontView;
-            imgElement.src = isFrontView ? "masmak-back1.jpg" : "masmak-back.jpg";
-            btnText.innerText = isFrontView ? "عرض الظهر والتصميم" : "عرض الوجه الأمامي";
-        }
-
-        function selectSize(size, btn) {
-            selectedSize = size;
-            document.querySelectorAll('.size-btn').forEach(b => {
-                b.classList.remove('bg-amber-500', 'text-black', 'shadow-md');
-                b.classList.add('text-neutral-200');
-            });
-            btn.classList.add('bg-amber-500', 'text-black', 'shadow-md');
-            btn.classList.remove('text-neutral-200');
-        }
-
-        function toggleBankDetails(show) {
-            const box = document.getElementById('bank-details-box');
-            if (show) box.classList.remove('hidden'); else box.classList.add('hidden');
-        }
-
-        function accessCafeDashboard() {
-            let pin = prompt("الرقم السري للمقهى:");
-            if (pin === "7778") switchView('cafe'); else if (pin !== null) alert("خطأ!");
-        }
-
-        function accessFounderDashboard() {
-            let pin = prompt("الرقم السري للمؤسس:");
-            if (pin === "1984") switchView('founder'); else if (pin !== null) alert("خطأ!");
-        }
-
-        async function processCheckout() {
-            let selectedMethod = document.getElementById('opt-bundle').checked ? "عرض الصديقين" : "Apple Pay / شبكة";
-
-            const orderData = {
-                product: "تيشيرت قصر المصمك",
-                size: selectedSize,
-                paymentMethod: selectedMethod,
-                table: "#04",
-                status: "مؤكد - بانتظار الاستلام"
-            };
-
-            if (window.saveOrderToCloud) await window.saveOrderToCloud(orderData);
-            alert("تم إتمام الطلب بنجاح!");
-        }
-    </script>
-</body>
-</html>
+                <div class="absolute top-0 right-0 bg-amber-500/15 text-
