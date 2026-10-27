@@ -130,7 +130,7 @@
         <!-- التبويبات العلوية -->
         <div class="flex justify-center gap-2 px-1">
             <button onclick="switchView('table')" id="tab-table" class="px-4 py-1.5 text-xs rounded-lg bg-neutral-900 text-neutral-300 border border-neutral-700 transition cursor-pointer">واجهة الطاولة</button>
-            <button onclick="switchView('wallet')" id="tab-wallet" class="px-4 py-1.5 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer shadow-md">محفظة العميل</button>
+            <button onclick="switchView('wallet')" id="tab-wallet" class="px-4 py-1.5 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer shadow-md">محفظة العميل والمتحف</button>
         </div>
     </header>
 
@@ -215,7 +215,7 @@
             </div>
         </div>
 
-        <!-- 2. محفظة العميل (مع بيانات العميل وتوقيع الشخصيات) -->
+        <!-- 2. محفظة العميل ومتحف النخبة -->
         <div id="view-wallet" class="space-y-6">
             <div class="glass rounded-3xl p-6 border gold-border space-y-5">
                 <div class="flex items-center space-x-3 space-x-reverse pb-3 border-b border-amber-500/20">
@@ -226,42 +226,66 @@
                     </div>
                 </div>
 
-                <!-- بيانات العميل الرسمية -->
+                <!-- بيانات المالك -->
                 <div class="bg-neutral-900/80 p-4 rounded-2xl border border-neutral-800 space-y-2">
                     <div class="flex justify-between items-center text-xs">
                         <span class="text-neutral-400">اسم المالك:</span>
-                        <span class="font-bold text-amber-200">نبيل النمر (مالك القطعة)</span>
+                        <span class="font-bold text-amber-200">نبيل النمر</span>
                     </div>
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-neutral-400">رقم العميل / الهوية الرقمية:</span>
+                        <span class="text-neutral-400">رقم العضوية الرقمية:</span>
                         <span class="font-mono text-amber-300">EZ-9082-VIP</span>
                     </div>
                     <div class="flex justify-between items-center text-xs">
                         <span class="text-neutral-400">حالة التوثيق:</span>
-                        <span class="text-emerald-400 font-bold">موثق عبر NFC (رسمي)</span>
+                        <span class="text-emerald-400 font-bold">موثق رسمياً عبر NFC</span>
                     </div>
                 </div>
 
-                <!-- قسم توقيع أهم الشخصيات -->
+                <!-- متحف عِزوة الرقمي (سجل المشاهير وشخصيات النخبة) -->
                 <div class="bg-neutral-900/60 p-4 rounded-2xl border gold-border space-y-3">
-                    <h5 class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                        <span>✒️</span>
-                        <span>اعتماد وتوقيع أهم الشخصيات</span>
-                    </h5>
-                    <div class="space-y-2 pt-1 border-t border-neutral-800 text-xs">
-                        <div class="flex justify-between items-center text-neutral-300">
-                            <span>مؤسس علامة عِزوة:</span>
-                            <span class="font-serif italic text-amber-200/90 text-sm">Nabeel Al-Nemer</span>
+                    <div class="flex items-center justify-between pb-2 border-b border-neutral-800">
+                        <h5 class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                            <span>🏛️</span>
+                            <span>متحف عِزوة الرقمي (سجل النخبة)</span>
+                        </h5>
+                        <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">سجل الشرف</span>
+                    </div>
+                    
+                    <p class="text-[11px] text-neutral-400 leading-relaxed">
+                        سجل حصري يوثق أسماء وتوقيعات أبرز الشخصيات والمشاهير الذين اقتنوا إصدار "قصر المصمك":
+                    </p>
+
+                    <!-- قائمة الشخصيات في المتحف -->
+                    <div class="space-y-2.5 pt-1">
+                        <div class="bg-neutral-950 p-3 rounded-xl border border-neutral-800 flex items-center justify-between">
+                            <div>
+                                <span class="font-bold text-xs text-amber-200 block">سمو الأمير / تركي بن فيصل</span>
+                                <span class="text-[10px] text-neutral-400">قطعة رقم #001 — إطلاق الدرعية</span>
+                            </div>
+                            <span class="font-serif italic text-amber-400 text-sm">Turki F.</span>
                         </div>
-                        <div class="flex justify-between items-center text-neutral-300">
-                            <span>اعتماد الشريك الثقافي:</span>
-                            <span class="font-serif italic text-amber-200/90 text-sm">Riyadh Heritage Hub</span>
+
+                        <div class="bg-neutral-950 p-3 rounded-xl border border-neutral-800 flex items-center justify-between">
+                            <div>
+                                <span class="font-bold text-xs text-amber-200 block">عبدالرحمن الفهد (خبير صناعة المحتوى)</span>
+                                <span class="text-[10px] text-neutral-400">قطعة رقم #005 — إصدار الرياض</span>
+                            </div>
+                            <span class="font-serif italic text-amber-400 text-sm">A. Alfadhel</span>
+                        </div>
+
+                        <div class="bg-neutral-950 p-3 rounded-xl border border-neutral-800 flex items-center justify-between">
+                            <div>
+                                <span class="font-bold text-xs text-amber-200 block">نبيل النمر (مؤسس علامة عِزوة)</span>
+                                <span class="text-[10px] text-neutral-400">قطعة رقم #000 — الإصدار التأسيسي</span>
+                            </div>
+                            <span class="font-serif italic text-amber-400 text-sm">Nabeel Al-Nemer</span>
                         </div>
                     </div>
                 </div>
 
-                <p class="text-[11px] text-neutral-400 leading-relaxed text-center">
-                    هذه البطاقة الرقمية تؤكد ملكيتك المطلقة لهذا الإصدار الفريد من نوعه والمربوط بتقنية التوثيق اللاتلامسي.
+                <p class="text-[10px] text-neutral-400 text-center leading-relaxed">
+                    يتم تحديث سجل المتحف الرقمي تلقائياً عند كل إصدار جديد وانضمام شخصيات جديدة لمجتمع عِزوة.
                 </p>
             </div>
         </div>
@@ -311,7 +335,7 @@
 
     </main>
 
-    <!-- الفوتر يحتوي على أزرار دخول المقهى ولوحة المؤسس -->
+    <!-- الفوتر -->
     <footer class="w-full max-w-md mx-auto text-center py-6 text-[10px] text-neutral-500 border-t border-neutral-900 space-y-4">
         <div class="flex justify-center gap-3">
             <button onclick="accessCafeDashboard()" class="px-3.5 py-2 rounded-xl bg-neutral-900 text-neutral-300 border border-neutral-700 text-xs font-medium cursor-pointer hover:bg-neutral-800 transition">☕ دخول المقهى</button>
