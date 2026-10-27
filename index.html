@@ -130,20 +130,20 @@
         
         <div class="flex justify-center gap-2 mt-4">
             <button onclick="switchView('table')" id="btn-table" class="px-3 py-1 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer">واجهة الشراء</button>
-            <button onclick="switchView('founder')" id="btn-founder" class="px-3 py-1 text-xs rounded-lg bg-neutral-800 text-amber-300 border gold-border transition cursor-pointer">لوحة التحكم</button>
+            <!-- تم ربط زر التحكم بالرقم السري للمؤسس ليكون آمناً -->
+            <button onclick="accessFounderDashboard()" id="btn-founder" class="px-3 py-1 text-xs rounded-lg bg-neutral-800 text-amber-300 border gold-border transition cursor-pointer">لوحة التحكم</button>
         </div>
     </header>
 
     <main class="w-full max-w-md mx-auto space-y-6 mb-10">
 
-        <!-- VIEW 1: TABLE SHOPPING -->
+        <!-- VIEW 1: TABLE SHOPPING (افتراضياً هي التي تظهر أولاً) -->
         <div id="view-table" class="space-y-6">
             <div class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-300 text-xs px-3 py-1 rounded-bl-xl border-l border-b border-amber-500/30 font-medium z-10">
                     طاولة رقم #04 (مقهى مختص)
                 </div>
                 
-                <!-- تم تعديل الارتفاع لتبدو الصورة كاملة وواضحة -->
                 <div class="w-full h-80 rounded-2xl bg-neutral-950 mb-5 relative overflow-hidden border gold-border flex items-center justify-center">
                     <img id="product-img" src="masmak-back1.jpg" alt="تيشيرت قصر المصمك" class="w-full h-full object-cover object-top transition duration-500">
                     
@@ -216,7 +216,7 @@
             </div>
         </div>
 
-        <!-- VIEW 2: CAFE DASHBOARD -->
+        <!-- VIEW 2: CAFE DASHBOARD (مخفية) -->
         <div id="view-cafe" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-5 border border-amber-500/40 bg-neutral-950">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-neutral-800">
@@ -228,7 +228,7 @@
             </div>
         </div>
 
-        <!-- VIEW 3: FOUNDER DASHBOARD -->
+        <!-- VIEW 3: FOUNDER DASHBOARD (مخفية افتراضياً) -->
         <div id="view-founder" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-5 border-2 gold-border bg-neutral-950">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-500/30">
@@ -261,7 +261,6 @@
 
     </main>
 
-    <!-- الفوتر مع أزرار الدخول السريع للمقهى والمؤسس -->
     <footer class="w-full max-w-md mx-auto text-center py-6 text-[10px] text-neutral-500 border-t border-neutral-900 space-y-4">
         <div class="flex justify-center gap-3">
             <button onclick="accessCafeDashboard()" class="px-3.5 py-2 rounded-xl bg-neutral-900 text-neutral-300 border border-neutral-700 text-xs font-medium cursor-pointer hover:bg-neutral-800 transition">☕ دخول المقهى</button>
