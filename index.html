@@ -127,17 +127,17 @@
         <h1 class="text-3xl font-black tracking-widest gold-gradient mb-1">عِزوة | EZWA</h1>
         <p class="text-xs text-amber-200/70 tracking-wider mb-4">اكتشف الرياض — إصدار قصر المصمك</p>
         
-        <!-- التبويبات العلوية للعميل فقط -->
+        <!-- التبويبات العلوية -->
         <div class="flex justify-center gap-2 px-1">
-            <button onclick="switchView('table')" id="tab-table" class="px-4 py-1.5 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer shadow-md">واجهة الطاولة</button>
-            <button onclick="switchView('wallet')" id="tab-wallet" class="px-4 py-1.5 text-xs rounded-lg bg-neutral-900 text-amber-300 border gold-border transition cursor-pointer">محفظة العميل</button>
+            <button onclick="switchView('table')" id="tab-table" class="px-4 py-1.5 text-xs rounded-lg bg-neutral-900 text-neutral-300 border border-neutral-700 transition cursor-pointer">واجهة الطاولة</button>
+            <button onclick="switchView('wallet')" id="tab-wallet" class="px-4 py-1.5 text-xs rounded-lg bg-amber-500 text-black font-bold transition cursor-pointer shadow-md">محفظة العميل</button>
         </div>
     </header>
 
     <main class="w-full max-w-md mx-auto space-y-6 mb-10">
 
         <!-- 1. واجهة الطاولة -->
-        <div id="view-table" class="space-y-6">
+        <div id="view-table" class="space-y-6 hidden">
             <div class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 right-0 bg-amber-500/15 text-amber-300 text-xs px-3 py-1 rounded-bl-xl border-l border-b border-amber-500/30 font-medium z-10">
                     طاولة رقم #04 (مقهى مختص)
@@ -215,17 +215,54 @@
             </div>
         </div>
 
-        <!-- 2. محفظة العميل -->
-        <div id="view-wallet" class="space-y-6 hidden">
-            <div class="glass rounded-3xl p-6 border gold-border space-y-4">
-                <div class="flex items-center space-x-3 space-x-reverse">
+        <!-- 2. محفظة العميل (مع بيانات العميل وتوقيع الشخصيات) -->
+        <div id="view-wallet" class="space-y-6">
+            <div class="glass rounded-3xl p-6 border gold-border space-y-5">
+                <div class="flex items-center space-x-3 space-x-reverse pb-3 border-b border-amber-500/20">
                     <span class="text-3xl">☁️</span>
                     <div>
                         <h4 class="font-bold text-sm text-amber-100">التوثيق السحابي للملكية</h4>
-                        <span class="text-xs text-emerald-400 font-medium">القطعة موثقة رسمياً باسمك (إصدار قصر المصمك #012)</span>
+                        <span class="text-xs text-emerald-400 font-medium">إصدار قصر المصمك الحصري (#012)</span>
                     </div>
                 </div>
-                <p class="text-xs text-neutral-400 leading-relaxed">تتيح لك هذه المحفظة إثبات ملكيتك الرقمية عبر شريحة الـ NFC المدمجة في التيشيرت، واستعراض تفاصيل الإصدار الحصري.</p>
+
+                <!-- بيانات العميل الرسمية -->
+                <div class="bg-neutral-900/80 p-4 rounded-2xl border border-neutral-800 space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-neutral-400">اسم المالك:</span>
+                        <span class="font-bold text-amber-200">نبيل النمر (مالك القطعة)</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-neutral-400">رقم العميل / الهوية الرقمية:</span>
+                        <span class="font-mono text-amber-300">EZ-9082-VIP</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-neutral-400">حالة التوثيق:</span>
+                        <span class="text-emerald-400 font-bold">موثق عبر NFC (رسمي)</span>
+                    </div>
+                </div>
+
+                <!-- قسم توقيع أهم الشخصيات -->
+                <div class="bg-neutral-900/60 p-4 rounded-2xl border gold-border space-y-3">
+                    <h5 class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                        <span>✒️</span>
+                        <span>اعتماد وتوقيع أهم الشخصيات</span>
+                    </h5>
+                    <div class="space-y-2 pt-1 border-t border-neutral-800 text-xs">
+                        <div class="flex justify-between items-center text-neutral-300">
+                            <span>مؤسس علامة عِزوة:</span>
+                            <span class="font-serif italic text-amber-200/90 text-sm">Nabeel Al-Nemer</span>
+                        </div>
+                        <div class="flex justify-between items-center text-neutral-300">
+                            <span>اعتماد الشريك الثقافي:</span>
+                            <span class="font-serif italic text-amber-200/90 text-sm">Riyadh Heritage Hub</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-[11px] text-neutral-400 leading-relaxed text-center">
+                    هذه البطاقة الرقمية تؤكد ملكيتك المطلقة لهذا الإصدار الفريد من نوعه والمربوط بتقنية التوثيق اللاتلامسي.
+                </p>
             </div>
         </div>
 
@@ -274,7 +311,7 @@
 
     </main>
 
-    <!-- الفوتر يحتوي الآن على أزرار دخول المقهى ولوحة المؤسس -->
+    <!-- الفوتر يحتوي على أزرار دخول المقهى ولوحة المؤسس -->
     <footer class="w-full max-w-md mx-auto text-center py-6 text-[10px] text-neutral-500 border-t border-neutral-900 space-y-4">
         <div class="flex justify-center gap-3">
             <button onclick="accessCafeDashboard()" class="px-3.5 py-2 rounded-xl bg-neutral-900 text-neutral-300 border border-neutral-700 text-xs font-medium cursor-pointer hover:bg-neutral-800 transition">☕ دخول المقهى</button>
@@ -294,7 +331,6 @@
             document.getElementById('view-cafe').classList.add('hidden');
             document.getElementById('view-founder').classList.add('hidden');
 
-            // تحديث التبويبات العلوية فقط إذا كانت مرئية
             ['table', 'wallet'].forEach(t => {
                 const btn = document.getElementById('tab-' + t);
                 if(btn) {
